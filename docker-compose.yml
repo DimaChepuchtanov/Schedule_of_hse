@@ -1,0 +1,43 @@
+name: schedule-hse-dev
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DATABASE:-schedule_hse}
+      POSTGRES_USER: ${PG_USER:-schedule_hse}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?Set PG_PASSWORD in the environment file}
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    ports:
+    - 127.0.0.1:${APP_PORT:-8000}:8000
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+    - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: project_manage.settings.dev
+      PG_HOST: db
+      PG_PORT: '5432'
+    command:
+    - /bin/sh
+    - -c
+    - python manage.py migrate --noinput && exec python manage.py runserver 0.0.0.0:8000
+    volumes:
+    - .:/app
+volumes:
+  postgres_data: {}

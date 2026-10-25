@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+
+# Переменные окружения
+.env
+.env.*
+!.env.example
+
+# Кэш инструментов
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Django: локальная БД и логи
+db.sqlite3
+db.sqlite3-journal
+*.log
+
+# Личные настройки редакторов
+.idea/
+.vscode/
