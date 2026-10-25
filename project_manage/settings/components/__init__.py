@@ -2,6 +2,7 @@ from .apps import INSTALLED_APPS
 from .auth import AUTH_PASSWORD_VALIDATORS
 from .middleware import MIDDLEWARE
 from .site import TEMPLATES, STATIC_URL
+from .database import DATABASES
 
 
 __all__ = [
@@ -9,5 +10,6 @@ __all__ = [
     'AUTH_PASSWORD_VALIDATORS',
     'MIDDLEWARE',
     'TEMPLATES',
-    'STATIC_URL'
+    'STATIC_URL',
+    'DATABASES'
 ]

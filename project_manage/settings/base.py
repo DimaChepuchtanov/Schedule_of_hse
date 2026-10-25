@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # config URL
 ROOT_URLCONF = 'project_manage.urls'
-WSGI_APPLICATION = 'manager.wsgi.application'
+WSGI_APPLICATION = 'project_manage.wsgi.application'
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
