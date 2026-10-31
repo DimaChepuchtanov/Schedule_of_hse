@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .react_auth_views import AuthViewSet, CurrentUserView, LogoutView, csrf_token
+from .views import AuthViewSet, CurrentUserView, LogoutView, csrf_token
 
 app_name = "accounts_api"
 

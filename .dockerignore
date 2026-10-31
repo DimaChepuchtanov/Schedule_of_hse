@@ -22,3 +22,5 @@ db.sqlite3*
 staticfiles
 media
 project_settings_fixes.patch
+**/node_modules
+**/dist

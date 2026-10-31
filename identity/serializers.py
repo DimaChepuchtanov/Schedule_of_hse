@@ -33,7 +33,7 @@ class UserSerializer(Serializer):
         return value
 
     def create(self, validated_data):
-        role = RoleModel.objects.get(id=1)
+        role = RoleModel.objects.get(id=0)
 
         return UserModel.objects.create(
             login=validated_data["login"],

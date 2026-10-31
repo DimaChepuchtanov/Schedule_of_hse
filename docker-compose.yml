@@ -70,9 +70,6 @@ services:
       PG_HOST: db
       PG_PORT: "5432"
 
-    volumes:
-      - .:/app
-
     command:
       - /bin/sh
       - -c

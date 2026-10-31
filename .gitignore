@@ -25,3 +25,4 @@ db.sqlite3-journal
 # Личные настройки редакторов
 .idea/
 .vscode/
+/staticfiles/

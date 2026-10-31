@@ -20,7 +20,7 @@ from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from identity.urls import urlpatterns as identity_urls
-from identity.react_auth_views import ReactAuthPageView
+from identity.views import ReactAuthPageView
 
 
 default_urls = [
