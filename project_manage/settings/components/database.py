@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from enum import StrEnum
+
 from typing import Final, Any
+
 
 from ..config import Config
 
@@ -17,3 +20,12 @@ DATABASES: Final[dict[str, dict[str, Any]]] = {
         'PORT': Config.PG_PORT,
     }
 }
+
+
+
+class DataBaseSchems(StrEnum):
+    IDENTITY = "identity"
+
+
+def get_database_table_name(schema: DataBaseSchems, table: str) -> str:
+    return f'"{schema.value}"."{table}"'

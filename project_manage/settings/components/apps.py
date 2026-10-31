@@ -8,4 +8,7 @@ INSTALLED_APPS: Final[tuple[str]] = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'drf_spectacular',
+    'identity',
 )

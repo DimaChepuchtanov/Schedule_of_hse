@@ -17,6 +17,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-urlpatterns = [
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+from identity.urls import urlpatterns as identity_urls
+from identity.react_auth_views import ReactAuthPageView
+
+
+default_urls = [
     path('admin/', admin.site.urls),
 ]
+
+
+pages_urls = [
+    path("auth/", ReactAuthPageView.as_view(), name="auth-page"),
+]
+
+swagger_urls = [
+    # Swagger UI endpoints
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+]
+
+urlpatterns = default_urls + swagger_urls + pages_urls + identity_urls
