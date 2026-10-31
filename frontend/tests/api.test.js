@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ApiError, createAuthApi } from "../src/api.js";
-import { validateAuthForm } from "../src/validation.js";
+import { ApiError, createAuthApi } from "../src/features/auth/api.js";
+import { validateAuthForm } from "../src/features/auth/validation.js";
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {

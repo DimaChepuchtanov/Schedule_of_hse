@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -38,4 +38,13 @@ swagger_urls = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
-urlpatterns = default_urls + swagger_urls + pages_urls + identity_urls
+# React selects pages by URL. Keep backend prefixes outside the SPA fallback.
+frontend_urls = [
+    re_path(
+        r"^(?!(?:api|admin|static|media)(?:/|$)).*$",
+        ReactAuthPageView.as_view(),
+        name="frontend-page",
+    ),
+]
+
+urlpatterns = default_urls + swagger_urls + pages_urls + identity_urls + frontend_urls
