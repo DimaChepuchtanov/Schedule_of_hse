@@ -21,6 +21,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from identity.urls import urlpatterns as identity_urls
 from identity.views import ReactAuthPageView
+from schedule_data.urls import urlpatterns as schedule_data_urls
 
 
 default_urls = [
@@ -47,4 +48,4 @@ frontend_urls = [
     ),
 ]
 
-urlpatterns = default_urls + swagger_urls + pages_urls + identity_urls + frontend_urls
+urlpatterns = default_urls + swagger_urls + pages_urls + identity_urls + schedule_data_urls + frontend_urls
