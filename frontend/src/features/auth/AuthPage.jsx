@@ -99,14 +99,6 @@ export default function AuthPage() {
                 mode={mode}
                 initialEmail={initialEmail}
                 onSwitch={switchMode}
-                onRegistered={(email) => {
-                  setInitialEmail(email);
-                  setMode("login");
-                  setNotice(
-                    "Аккаунт создан. Войдите с вашей почтой и паролем.",
-                  );
-                  setConnectionError("");
-                }}
                 onAuthenticated={(account) => {
                   setUser(account);
                   setConnectionError("");

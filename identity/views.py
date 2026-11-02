@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 
-from .serializers import LoginSerializer, UserSerializer
+from .serializers import LoginSerializer
 
 
 def user_payload(user):
@@ -53,12 +53,6 @@ class CurrentUserView(APIView):
 class AuthViewSet(ViewSet):
     permission_classes = [AllowAny]
     authentication_classes = []
-
-    def reg(self, request):
-        serializer = UserSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({"user": user_payload(user)}, status=status.HTTP_201_CREATED)
 
     def auth(self, request):
         serializer = LoginSerializer(data=request.data, context={"request": request})

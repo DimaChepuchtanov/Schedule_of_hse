@@ -92,37 +92,7 @@ export default function AuthForm({
 
   return (
     <>
-      <div
-        className="auth-tabs"
-        role="tablist"
-        aria-label="Вход или регистрация"
-        onKeyDown={tabKeys}
-      >
-        <button
-          id="tab-login"
-          role="tab"
-          aria-selected={!registration}
-          aria-controls="auth-panel"
-          tabIndex={registration ? -1 : 0}
-          disabled={pending}
-          type="button"
-          onClick={() => switchTab("login")}
-        >
-          Вход
-        </button>
-        <button
-          id="tab-register"
-          role="tab"
-          aria-selected={registration}
-          aria-controls="auth-panel"
-          tabIndex={registration ? 0 : -1}
-          disabled={pending}
-          type="button"
-          onClick={() => switchTab("register")}
-        >
-          Регистрация
-        </button>
-      </div>
+
       <div id="auth-panel" role="tabpanel" aria-labelledby={`tab-${mode}`}>
         <div className="form-heading">
           <h2>{registration ? "Начнём знакомство" : "С возвращением"}</h2>
@@ -208,17 +178,6 @@ export default function AuthForm({
               </>
             )}
           </button>
-          <p className="form-bottom">
-            {registration ? "Уже есть аккаунт?" : "Ещё нет аккаунта?"}{" "}
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => switchTab(registration ? "login" : "register")}
-            >
-              {registration ? "Войти" : "Зарегистрироваться"}
-              <ChevronRight size={14} />
-            </button>
-          </p>
         </form>
         <div className="form-divider" />
         <p className="access-note">
