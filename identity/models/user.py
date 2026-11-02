@@ -19,6 +19,10 @@ class UserManager(BaseUserManager):
     def create_user(self, login: str, password: str | None = None, **extra_fields):
         if not login:
             raise ValueError("A login is required.")
+        display_name = extra_fields.get("display_name", "")
+        if not isinstance(display_name, str) or not display_name.strip():
+            raise ValueError("A display name is required.")
+        extra_fields["display_name"] = display_name.strip()
 
         user = self.model(
             login=self.normalize_email(login),
@@ -69,7 +73,8 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
 
     last_login: DateTimeField[datetime, datetime] = DateTimeField(
         verbose_name="Дата последнего входа пользователя",
-        auto_now=True
+        blank=True,
+        null=True,
     )
 
     is_staff = BooleanField(default=False)
@@ -78,6 +83,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
 
 
     USERNAME_FIELD = "login"
+    REQUIRED_FIELDS = ["display_name"]
 
 
     @override

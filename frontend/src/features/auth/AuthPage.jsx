@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, LoaderCircle, RotateCw, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  LoaderCircle,
+  RotateCw,
+  Sparkles,
+} from "lucide-react";
 import { authApi } from "./api.js";
 import AuthForm from "./components/AuthForm.jsx";
 import SessionPanel from "./components/SessionPanel.jsx";
 import Showcase from "./components/Showcase.jsx";
 import "./auth.css";
 
-export default function AuthPage() {
-  const [mode, setMode] = useState("login");
-  const [initialEmail, setInitialEmail] = useState("");
+export default function AuthPage({
+  api = authApi,
+  managementHref = "/staff/users/",
+}) {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const [connectionError, setConnectionError] = useState("");
@@ -19,12 +26,13 @@ export default function AuthPage() {
     let active = true;
     const controller = new AbortController();
     setChecking(true);
-    authApi
+    api
       .session({ signal: controller.signal })
       .then((session) => {
-        if (!active) return;
-        setUser(session.user);
-        setConnectionError("");
+        if (active) {
+          setUser(session.user);
+          setConnectionError("");
+        }
       })
       .catch((error) => {
         if (active)
@@ -37,13 +45,7 @@ export default function AuthPage() {
       active = false;
       controller.abort();
     };
-  }, [retryCount]);
-
-  function switchMode(nextMode, email) {
-    setInitialEmail(email);
-    setMode(nextMode);
-    setNotice("");
-  }
+  }, [api, retryCount]);
 
   return (
     <main className="auth-page app-shell">
@@ -87,18 +89,16 @@ export default function AuthPage() {
             ) : user ? (
               <SessionPanel
                 user={user}
+                api={api}
+                managementHref={managementHref}
                 onLoggedOut={() => {
                   setUser(null);
                   setNotice("Вы вышли из аккаунта.");
-                  setMode("login");
                 }}
               />
             ) : (
               <AuthForm
-                key={mode}
-                mode={mode}
-                initialEmail={initialEmail}
-                onSwitch={switchMode}
+                api={api}
                 onAuthenticated={(account) => {
                   setUser(account);
                   setConnectionError("");

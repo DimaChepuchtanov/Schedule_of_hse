@@ -19,8 +19,16 @@ from .serializers import LoginSerializer
 
 
 def user_payload(user):
-    return {"id": str(user.pk), "login": user.get_username()}
-
+    return {
+        "id": str(user.pk),
+        "login": user.get_username(),
+        "display_name": user.display_name,
+        "is_active": user.is_active,
+        "is_staff": user.is_staff,
+        "is_superuser": user.is_superuser,
+        "created_at": user.created_at.isoformat(),
+        "last_login": user.last_login.isoformat() if user.last_login else None,
+    }
 
 @require_GET
 @never_cache

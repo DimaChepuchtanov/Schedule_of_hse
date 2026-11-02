@@ -1,5 +1,5 @@
 const PAGES_DIRECTORY = "../pages/";
-const RESERVED_PREFIXES = new Set(["api", "admin", "static", "media"]);
+const RESERVED_PREFIXES = new Set(["api", "static", "media"]);
 
 /** Map a page file to its URL; return null for private helpers and tests. */
 export function pagePathFromFile(file) {
