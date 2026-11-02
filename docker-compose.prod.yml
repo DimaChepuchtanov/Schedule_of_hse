@@ -17,6 +17,25 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+  db-init:
+    image: postgres:16-alpine
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: '5432'
+      PGUSER: ${PG_USER:-schedule_hse}
+      PGPASSWORD: ${PG_PASSWORD:?Set PG_PASSWORD in the environment file}
+      PGDATABASE: ${PG_DATABASE:-schedule_hse}
+    volumes:
+    - ./scripts/create_schemas.sql:/scripts/create_schemas.sql:ro
+    command:
+    - psql
+    - -v
+    - ON_ERROR_STOP=1
+    - -f
+    - /scripts/create_schemas.sql
   web:
     build:
       context: .
@@ -27,6 +46,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     restart: unless-stopped
     env_file:
     - .env.prod
