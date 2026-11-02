@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 
+from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from identity.urls import urlpatterns as identity_urls
@@ -24,7 +25,13 @@ from identity.views import ReactAuthPageView
 
 
 default_urls = [
-    path('admin/', admin.site.urls),
+    path("admin/", ReactAuthPageView.as_view(), name="users-page"),
+    path("admin", ReactAuthPageView.as_view(), name="users-page-no-slash"),
+    re_path(
+        r"^staff/users/?$",
+            RedirectView.as_view(pattern_name="users-page", permanent=False),
+            name="legacy-users-page",
+        ),
 ]
 
 
