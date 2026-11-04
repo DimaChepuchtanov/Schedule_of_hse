@@ -150,6 +150,10 @@ export default function DataImportPage() {
           </div>
         ) : (
           <div className="data-import__manual">
+            <label htmlFor="manual-file-type">Тип файла</label>
+            <select id="manual-file-type" value={fileType} onChange={(event) => { setFileType(event.target.value); setManualTab(Object.keys(TYPES[event.target.value].tabs)[0]); }}>
+              {Object.entries(TYPES).map(([key, value]) => <option key={key} value={key}>{value.title}</option>)}
+            </select>
             <div className="data-import__tabs data-import__tabs--inner">
               {manualTabs.map(([key, columns]) => <button type="button" key={key} className={manualTab === key ? "is-active" : ""} onClick={() => setManualTab(key)}>{key === "groups" ? "Группы" : key === "study_plan" ? "Учебный план" : "Нагрузка"}</button>)}
             </div>
