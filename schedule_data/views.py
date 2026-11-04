@@ -19,7 +19,7 @@ def data_import(request: HttpRequest) -> JsonResponse:
             rows_by_type = json.loads(request.POST.get('rows', '{}'))
         except json.JSONDecodeError:
             return JsonResponse({'errors': ['Таблица ручного ввода имеет неверный формат.']}, status=400)
-        payload, errors = parse_manual(rows_by_type)
+        payload, errors = parse_manual(rows_by_type, request.POST.get('data_type', ''))
     else:
         return JsonResponse({'errors': ['Неизвестный источник данных.']}, status=400)
 
@@ -39,11 +39,26 @@ def example_file(request: HttpRequest, example_type: str) -> HttpResponse:
         return JsonResponse({'error': 'Пример не найден.'}, status=404)
 
     workbook = Workbook()
-    title, headers, row = EXAMPLE_ROWS[example_type]
-    sheet = workbook.active
-    sheet.title = title
-    sheet.append(headers)
-    sheet.append(row)
+    examples = EXAMPLE_ROWS[example_type]
+    for index, (title, headers) in enumerate(examples.items()):
+        sheet = workbook.active if index == 0 else workbook.create_sheet()
+        sheet.title = title
+        sheet.append(headers)
+        sheet.append(tuple(
+            ('МБИ' if header == 'Направление' else
+             '1' if header == 'Курс' else
+             'МБИ-01' if header == 'Код группы' else
+             '1' if header == 'Численность' else
+             'Программирование' if header == 'Предмет' else
+             'Лекция' if header == 'Вид занятия' else
+             'Каждая группа' if header == 'Для кого' else
+             '2' if header in {'Часы', 'Лекции, часы', 'Семинары, часы'} else
+             'teacher-001' if header == 'Код преподавателя' else
+             'Иванов Иван Иванович' if header == 'Преподаватель' else
+             'Понедельник' if header == 'Ограничения' else
+             'Компьютерный класс' if header == 'Требования к аудитории' else '')
+            for header in headers
+        ))
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

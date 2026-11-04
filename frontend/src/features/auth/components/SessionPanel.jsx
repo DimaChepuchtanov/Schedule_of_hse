@@ -1,20 +1,32 @@
 import React, { useState } from "react";
-import { AlertCircle, CheckCircle2, LoaderCircle, LogOut } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  LoaderCircle,
+  LogOut,
+  Users,
+} from "lucide-react";
 import { authApi } from "../api.js";
 
-export default function SessionPanel({ user, onLoggedOut }) {
+export default function SessionPanel({
+  user,
+  onLoggedOut,
+  api = authApi,
+  managementHref = "/staff/users/",
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   async function logout() {
     setPending(true);
     setError("");
     try {
-      await authApi.logout();
+      await api.logout();
       onLoggedOut();
     } catch (failure) {
       // If the session has already expired, reflect the server state.
       try {
-        const session = await authApi.session();
+        const session = await api.session();
         if (!session.authenticated) {
           onLoggedOut();
           return;
@@ -47,11 +59,14 @@ export default function SessionPanel({ user, onLoggedOut }) {
       </p>
       <div className="user-card">
         <span className="user-avatar">
-          {user.login.slice(0, 1).toLocaleUpperCase("ru")}
+          {(user.display_name || user.login)
+            .slice(0, 1)
+            .toLocaleUpperCase("ru")}
         </span>
         <div>
           <span>Вы вошли как</span>
-          <strong>{user.login}</strong>
+          <strong>{user.display_name || user.login}</strong>
+          <small className="session-user-email">{user.login}</small>
         </div>
         <CheckCircle2 size={18} className="user-check" />
       </div>
@@ -60,6 +75,13 @@ export default function SessionPanel({ user, onLoggedOut }) {
           <AlertCircle size={18} />
           <span>{error}</span>
         </div>
+      )}
+      {user.is_superuser && (
+        <a className="primary-button session-admin-link" href={managementHref}>
+          <Users size={17} />
+          Управление пользователями
+          <ArrowRight size={17} />
+        </a>
       )}
       <button
         className="secondary-button"

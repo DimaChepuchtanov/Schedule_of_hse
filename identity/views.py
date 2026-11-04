@@ -15,12 +15,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 
-from .serializers import LoginSerializer, UserSerializer
+from .serializers import LoginSerializer
 
 
 def user_payload(user):
-    return {"id": str(user.pk), "login": user.get_username()}
-
+    return {
+        "id": str(user.pk),
+        "login": user.get_username(),
+        "display_name": user.display_name,
+        "is_active": user.is_active,
+        "is_staff": user.is_staff,
+        "is_superuser": user.is_superuser,
+        "created_at": user.created_at.isoformat(),
+        "last_login": user.last_login.isoformat() if user.last_login else None,
+    }
 
 @require_GET
 @never_cache
@@ -53,12 +61,6 @@ class CurrentUserView(APIView):
 class AuthViewSet(ViewSet):
     permission_classes = [AllowAny]
     authentication_classes = []
-
-    def reg(self, request):
-        serializer = UserSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({"user": user_payload(user)}, status=status.HTTP_201_CREATED)
 
     def auth(self, request):
         serializer = LoginSerializer(data=request.data, context={"request": request})

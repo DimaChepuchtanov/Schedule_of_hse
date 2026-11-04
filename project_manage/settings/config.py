@@ -14,7 +14,7 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", None)
     DJANGO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", None)
     DJANGO_CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", None)
-    DJANGO_COOKIE_SECURE = os.getenv("DJANGO_COOKIE_SECURE", None)
+    DJANGO_COOKIE_SECURE = os.getenv("DJANGO_COOKIE_SECURE", "0").strip().lower() in {"1", "true", "yes", "on"}
     
     @classmethod
     def validate(cls) -> None:
