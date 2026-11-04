@@ -3,6 +3,7 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  FileUp,
   LoaderCircle,
   LogOut,
   Users,
@@ -77,11 +78,18 @@ export default function SessionPanel({
         </div>
       )}
       {user.is_superuser && (
-        <a className="primary-button session-admin-link" href={managementHref}>
-          <Users size={17} />
-          Управление пользователями
-          <ArrowRight size={17} />
-        </a>
+        <>
+          <a className="primary-button session-admin-link" href={managementHref}>
+            <Users size={17} />
+            Управление пользователями
+            <ArrowRight size={17} />
+          </a>
+          <a className="primary-button session-admin-link" href="/data-import/">
+            <FileUp size={17} />
+            Импорт данных
+            <ArrowRight size={17} />
+          </a>
+        </>
       )}
       <button
         className="secondary-button"
