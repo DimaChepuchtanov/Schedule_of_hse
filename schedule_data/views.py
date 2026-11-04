@@ -9,6 +9,11 @@ from .services import EXAMPLE_ROWS, parse_manual, parse_uploaded_file
 @require_POST
 @csrf_protect
 def data_import(request: HttpRequest) -> JsonResponse:
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {'errors': ['Для импорта данных необходимо авторизоваться.']},
+            status=401,
+        )
     source = request.POST.get('source')
     if source == 'xlsx':
         payload, errors = parse_uploaded_file(
@@ -33,6 +38,11 @@ def data_import(request: HttpRequest) -> JsonResponse:
 
 
 def example_file(request: HttpRequest, example_type: str) -> HttpResponse:
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {'error': 'Для скачивания примера необходимо авторизоваться.'},
+            status=401,
+        )
     from openpyxl import Workbook
 
     if example_type not in EXAMPLE_ROWS:

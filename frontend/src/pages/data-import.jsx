@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageLayout from "../shared/layouts/PageLayout.jsx";
 
 const TYPES = {
@@ -83,6 +83,7 @@ function PreviewTable({ title, columns, rows }) {
 }
 
 export default function DataImportPage() {
+  const [authenticated, setAuthenticated] = useState(null);
   const [source, setSource] = useState("xlsx");
   const [fileType, setFileType] = useState("directions");
   const [manualTab, setManualTab] = useState("groups");
@@ -95,6 +96,22 @@ export default function DataImportPage() {
 
   const definition = TYPES[fileType];
   const manualTabs = Object.entries(definition.tabs);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/me/", { credentials: "include", cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error("Не удалось проверить авторизацию.");
+        return response.json();
+      })
+      .then((data) => {
+        if (active) setAuthenticated(data.authenticated === true);
+      })
+      .catch(() => {
+        if (active) setAuthenticated(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   async function submit(event) {
     event.preventDefault();
@@ -132,6 +149,15 @@ export default function DataImportPage() {
 
   return (
     <PageLayout title="Выгрузка исходных данных" description="Загрузите данные и проверьте их перед добавлением в систему.">
+      {authenticated === null && <p className="import-result">Проверяем авторизацию...</p>}
+      {authenticated === false && (
+        <div className="import-result import-result--error">
+          <h2>Доступ ограничен</h2>
+          <p>Для импорта исходных данных необходимо авторизоваться.</p>
+          <a className="page-button" href="/auth/">Перейти к авторизации</a>
+        </div>
+      )}
+      {authenticated === true && (
       <form className="data-import" onSubmit={submit}>
         <div className="data-import__tabs">
           <button type="button" className={source === "xlsx" ? "is-active" : ""} onClick={() => changeSource("xlsx")}>Excel-файл</button>
@@ -165,6 +191,7 @@ export default function DataImportPage() {
         )}
         <button className="page-button" type="submit" disabled={busy}>{busy ? "Проверяем..." : "Проверить и показать"}</button>
       </form>
+      )}
       {errors.length > 0 && <div className="import-result import-result--error"><h2>Проверка не пройдена</h2><ul>{errors.map((error) => <li key={error}>{error}</li>)}</ul></div>}
       {message && !errors.length && <p className="import-result import-result--success">{message}</p>}
       {!errors.length && (preview.groups.length || preview.study_plan.length || preview.workload.length) > 0 && (
