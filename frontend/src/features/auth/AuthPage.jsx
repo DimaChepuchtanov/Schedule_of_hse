@@ -1,25 +1,20 @@
 import React, { useEffect, useState } from "react";
 import {
   AlertCircle,
-  CheckCircle2,
   LoaderCircle,
   RotateCw,
   Sparkles,
 } from "lucide-react";
 import { authApi } from "./api.js";
 import AuthForm from "./components/AuthForm.jsx";
-import SessionPanel from "./components/SessionPanel.jsx";
+import { Navigate } from "react-router";
 import Showcase from "./components/Showcase.jsx";
 import "./auth.css";
 
-export default function AuthPage({
-  api = authApi,
-  managementHref = "/staff/users/",
-}) {
+export default function AuthPage({ api = authApi }) {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const [connectionError, setConnectionError] = useState("");
-  const [notice, setNotice] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
@@ -46,6 +41,8 @@ export default function AuthPage({
       controller.abort();
     };
   }, [api, retryCount]);
+
+  if (user) return <Navigate to="/menu/" replace />;
 
   return (
     <main className="auth-page app-shell">
@@ -74,37 +71,14 @@ export default function AuthPage({
               </button>
             </div>
           )}
-          {notice && (
-            <div className="success-alert" role="status">
-              <CheckCircle2 size={18} />
-              <span>{notice}</span>
-            </div>
-          )}
-          <div className={`auth-card ${user ? "auth-card-session" : ""}`}>
+          <div className="auth-card">
             {checking ? (
               <div className="checking-panel" role="status">
                 <LoaderCircle className="spin" size={28} />
                 <p>Проверяем вход…</p>
               </div>
-            ) : user ? (
-              <SessionPanel
-                user={user}
-                api={api}
-                managementHref={managementHref}
-                onLoggedOut={() => {
-                  setUser(null);
-                  setNotice("Вы вышли из аккаунта.");
-                }}
-              />
             ) : (
-              <AuthForm
-                api={api}
-                onAuthenticated={(account) => {
-                  setUser(account);
-                  setConnectionError("");
-                  setNotice("");
-                }}
-              />
+              <AuthForm api={api} onAuthenticated={setUser} />
             )}
           </div>
           <p className="auth-caption">
