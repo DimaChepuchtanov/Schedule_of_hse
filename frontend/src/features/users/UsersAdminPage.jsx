@@ -263,6 +263,9 @@ export default function UsersAdminPage({
               Расписание<span className="um-brand__dot">.</span>
             </span>
           </a>
+          <a href="/data-import/" className="um-button um-button--secondary">
+            Импорт данных
+          </a>
           <div className="um-account">
             <span className="um-avatar um-avatar--admin">
               {initials(context.user.login, context.user.display_name)}

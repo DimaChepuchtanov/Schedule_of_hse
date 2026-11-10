@@ -146,3 +146,32 @@ input {
 @media (prefers-reduced-motion: reduce) {
   .page-spinner { animation: none; }
 }
+
+.data-import { display: grid; gap: 20px; }
+.data-import__tabs { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--border); }
+.data-import__tabs button { padding: 10px 14px; border: 0; border-radius: 9px 9px 0 0; color: #66736b; background: transparent; }
+.data-import__tabs button.is-active { color: white; background: var(--green); }
+.data-import__file, .data-import__manual { display: grid; gap: 10px; padding: 20px; border: 1px dashed #cbd8cc; border-radius: 12px; background: #fbfcf9; }
+.data-import label { display: grid; gap: 7px; color: #42534a; font-weight: 600; }
+.data-import input[type="file"], .data-import select, .data-import textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: white; }
+.data-import fieldset { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; }
+.data-import legend { padding: 0 6px; color: var(--green); font-weight: 700; }
+.data-import textarea { min-height: 76px; resize: vertical; }
+.data-import__tabs--inner { border-bottom: 0; }
+.manual-table-wrap, .import-preview__table-wrap { overflow-x: auto; }
+.manual-table, .import-preview table { width: 100%; border-collapse: collapse; }
+.manual-table { min-width: 620px; }
+.manual-table th, .manual-table td, .import-preview th, .import-preview td { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.manual-table input { width: 100%; min-height: 40px; padding: 8px; border: 1px solid var(--border); border-radius: 7px; }
+.manual-table__remove, .manual-table__add { border: 0; background: transparent; color: var(--green); font-weight: 600; white-space: nowrap; }
+.manual-table__add { margin-top: 12px; padding: 8px 0; }
+.weekday-picker { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 6px; min-width: 240px; }
+.weekday-picker label { display: flex; align-items: center; gap: 6px; color: #42534a; font-size: 13px; font-weight: 500; }
+.weekday-picker input { width: auto; min-height: auto; }
+.data-import__examples { display: grid; gap: 8px; color: var(--green); }
+.data-import__example-control { display: flex; flex-wrap: wrap; gap: 10px; }
+.import-result { margin-top: 24px; padding: 16px 20px; border-radius: 12px; }
+.import-result--error { color: #8d342d; background: #fff1ef; }
+.import-result--success { color: #285346; background: #edf7e9; }
+.import-preview { display: grid; gap: 24px; margin-top: 28px; }
+.import-preview h2, .import-preview__section h2 { margin: 0 0 12px; font-size: 18px; }

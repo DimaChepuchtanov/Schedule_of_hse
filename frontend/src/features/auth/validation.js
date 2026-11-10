@@ -1,4 +1,4 @@
-export function validateAuthForm({ login, password }) {
+export function validateAuthForm({ mode = "login", login, password, confirmation }) {
   const errors = {};
   const email = login.trim();
   if (!email) errors.login = "Введите электронную почту.";
@@ -7,5 +7,9 @@ export function validateAuthForm({ login, password }) {
   else if (!/^[^\s@]+@[^\s@]+$/.test(email))
     errors.login = "Проверьте адрес электронной почты.";
   if (!password) errors.password = "Введите пароль.";
+  else if (mode === "register" && [...password].length < 8)
+    errors.password = "Используйте не менее 8 символов.";
+  if (mode === "register" && password !== confirmation)
+    errors.confirmation = "Пароли должны совпадать.";
   return errors;
 }
