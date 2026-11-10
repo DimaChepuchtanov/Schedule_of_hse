@@ -50,6 +50,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: backend
 
     init: true
 
