@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('display_name', models.CharField(max_length=250, verbose_name='Отображаемое имя пользователя')),
                 ('login', models.EmailField(max_length=250, unique=True, verbose_name='Логин пользователя')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания пользователя')),
-                ('last_login', models.DateTimeField(auto_now=True, verbose_name='Дата последнего входа пользователя')),
+                ('last_login', models.DateTimeField(verbose_name='Дата последнего входа пользователя', null=True, blank=True)),
                 ('is_staff', models.BooleanField(default=False)),
                 ('is_superuser', models.BooleanField(default=False)),
                 ('is_active', models.BooleanField(default=True)),
