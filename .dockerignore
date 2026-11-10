@@ -24,3 +24,5 @@ media
 project_settings_fixes.patch
 **/node_modules
 **/dist
+**/build
+**/*.egg-info
