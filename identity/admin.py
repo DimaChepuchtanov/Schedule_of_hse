@@ -23,4 +23,6 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('login',)
 
 
+
+
 admin.site.register(UserModel, CustomUserAdmin)
