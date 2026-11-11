@@ -15,7 +15,7 @@ class CustomUserAdmin(UserAdmin):
     )
     add_fieldsets = (
         (
-            None, 
+            None,
             {
                 "classes": ("wide",),
                 "fields": (
@@ -24,15 +24,13 @@ class CustomUserAdmin(UserAdmin):
                     "password1",
                     "password2",
                     "is_staff",
-                    "is_active"
-                )
-            }
-         ),
+                    "is_active",
+                ),
+            },
+        ),
     )
     search_fields = ("login",)
     ordering = ("login",)
-
-
 
 
 admin.site.register(UserModel, CustomUserAdmin)
