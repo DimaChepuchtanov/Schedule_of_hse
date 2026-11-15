@@ -1,4 +1,5 @@
+from .role import RoleModel
 from .user import UserModel
 
 
-__all__ = ['UserModel']
+__all__ = ['RoleModel', 'UserModel']

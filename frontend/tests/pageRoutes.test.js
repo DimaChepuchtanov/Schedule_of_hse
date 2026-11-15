@@ -24,10 +24,11 @@ test("Page paths normalize Windows separators", () => {
   assert.equal(pagePathFromFile("..\\pages\\profile\\index.jsx"), "/profile");
 });
 
-test("Pages cannot capture the API, admin or static namespaces", () => {
-  for (const prefix of ["api", "admin", "static", "media", "API"]) {
+test("Pages cannot capture API or static namespaces", () => {
+  for (const prefix of ["api", "static", "media", "API"]) {
     assert.throws(() => pagePathFromFile(`../pages/${prefix}/index.jsx`), /reserved Django prefix/);
   }
+  assert.equal(pagePathFromFile("../pages/admin/index.jsx"), "/admin");
   assert.equal(pagePathFromFile("../pages/api-help.jsx"), "/api-help");
 });
 
