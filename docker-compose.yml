@@ -46,6 +46,7 @@ services:
       - -f
       - /scripts/create_schemas.sql
 
+
   web:
     build:
       context: .
@@ -70,6 +71,12 @@ services:
       DJANGO_SETTINGS_MODULE: project_manage.settings.dev
       PG_HOST: db
       PG_PORT: "5432"
+    
+
+    volumes:
+      - .:/app
+      - /app/frontend/dist
+      - /app/staticfiles
 
     command:
       - /bin/sh
@@ -85,6 +92,7 @@ services:
         --access-logfile -
         --error-logfile -
         --reload
+        --reload-engine poll
       
 
 
