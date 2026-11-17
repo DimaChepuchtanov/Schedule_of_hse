@@ -17,6 +17,22 @@ const TYPES = {
   },
 };
 
+const REQUIRED = {
+  groups: ["Направление", "Курс", "Код группы", "Численность"],
+  study_plan: ["Предмет", "Направление", "Курс", "Вид занятия", "Для кого", "Часы"],
+  workload: ["Предмет", "Код преподавателя", "Преподаватель", "Лекции, часы", "Семинары, часы", "Направление", "Курс"],
+};
+const HINTS = {
+  "Курс": "Целое число от 1 до 5.",
+  "Численность": "Целое число больше нуля, без букв.",
+  "Часы": "Целое число от 0, без букв.",
+  "Лекции, часы": "Целое число от 0, без букв.",
+  "Семинары, часы": "Целое число от 0, без букв.",
+  "Код подгруппы": "Необязательное поле.",
+  "Требования к аудитории": "Необязательное поле.",
+  "Ограничения": "Необязательное поле.",
+};
+
 const emptyPreview = { groups: [], study_plan: [], workload: [] };
 const initialRows = Object.fromEntries(
   Object.entries(TYPES).flatMap(([type, definition]) =>
@@ -42,14 +58,23 @@ async function validateImport(formData) {
   return data;
 }
 
-function EditableTable({ columns, rows, onChange }) {
+function EditableTable({ columns, required, rows, onChange }) {
   function update(index, column, value) {
     onChange(rows.map((row, rowIndex) => rowIndex === index ? { ...row, [column]: value } : row));
   }
   return (
     <div className="manual-table-wrap">
       <table className="manual-table">
-        <thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}<th /></tr></thead>
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th key={column} className={required.includes(column) ? "is-required" : "is-optional"} title={HINTS[column] || (required.includes(column) ? "Обязательное поле" : "Необязательное поле")}>
+                {column}{required.includes(column) ? " *" : ""}
+              </th>
+            ))}
+            <th />
+          </tr>
+        </thead>
         <tbody>
           {rows.map((row, index) => (
             <tr key={index}>
@@ -64,6 +89,7 @@ function EditableTable({ columns, rows, onChange }) {
         </tbody>
       </table>
       <button type="button" className="manual-table__add" onClick={() => onChange([...rows, Object.fromEntries(columns.map((column) => [column, ""]))])}>+ Добавить строку</button>
+      <p className="manual-table__note">* — обязательное поле. Курс — целое число от 1 до 5. Численность и часы — целые числа без букв.</p>
     </div>
   );
 }
@@ -171,7 +197,7 @@ export default function DataImportPage() {
             </select>
             <label htmlFor="import-file">Файл .xlsx</label>
             <input id="import-file" type="file" accept=".xlsx" onChange={(event) => setFile(event.target.files[0] || null)} />
-            <p>{fileType === "directions" ? "Листы: «Группы» и «Учебный план»." : "Лист: «Нагрузка»."} Структура и заголовки проверяются строго.</p>
+            <p>{fileType === "directions" ? "Листы: «Группы» и «Учебный план»." : "Лист: «Нагрузка»."} Заголовки проверяются строго. Пример скачивается как «{definition.title}.xlsx»: обязательные столбцы зелёные, необязательные жёлтые, у каждого есть примечание.</p>
             <a className="page-button" href={`/api/data-import/examples/${fileType}/`}>Скачать пример: {definition.title}</a>
           </div>
         ) : (
@@ -185,7 +211,7 @@ export default function DataImportPage() {
             </div>
             <fieldset>
               <legend>{manualTabs.find(([key]) => key === manualTab)?.[0] === "groups" ? "Группы" : manualTab === "study_plan" ? "Учебный план" : "Нагрузка"}</legend>
-              <EditableTable columns={definition.tabs[manualTab]} rows={rows[manualTab]} onChange={(value) => setRows({ ...rows, [manualTab]: value })} />
+              <EditableTable columns={definition.tabs[manualTab]} required={REQUIRED[manualTab]} rows={rows[manualTab]} onChange={(value) => setRows({ ...rows, [manualTab]: value })} />
             </fieldset>
           </div>
         )}
