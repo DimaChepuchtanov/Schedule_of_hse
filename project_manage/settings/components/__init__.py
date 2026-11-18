@@ -5,6 +5,7 @@ from .site import TEMPLATES, STATIC_URL, STATIC_ROOT, STATICFILES_DIRS
 from .database import DATABASES
 from .rest import REST_FRAMEWORK
 from .swagger import SPECTACULAR_SETTINGS
+from .cache import CACHES
 
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     'STATICFILES_DIRS',
     'DATABASES',
     'SPECTACULAR_SETTINGS',
-    'REST_FRAMEWORK'
+    'REST_FRAMEWORK',
+    'CACHES'
 ]
