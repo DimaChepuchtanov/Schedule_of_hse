@@ -34,7 +34,7 @@ RUN python -m pip install .
 COPY --from=frontend-build --chown=app:app \
     /frontend/dist /app/frontend/dist
 
-RUN mkdir -p /app/staticfiles \
+RUN mkdir -p /app/staticfiles /app/media \
     && chown -R app:app /app
 
 USER app
