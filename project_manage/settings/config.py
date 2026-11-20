@@ -15,6 +15,11 @@ class Config:
     DJANGO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", None)
     DJANGO_CSRF_TRUSTED_ORIGINS = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", None)
     DJANGO_COOKIE_SECURE = os.getenv("DJANGO_COOKIE_SECURE", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+    REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+    REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+    REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
     
     @classmethod
     def validate(cls) -> None:

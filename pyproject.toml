@@ -19,7 +19,8 @@ dependencies = [
     "drf-spectacular==0.30.0",
     "gunicorn",
     "whitenoise",
-    "openpyxl==3.1.5"
+    "redis==8.1.0",
+    "openpyxl",
 ]
 
 [dependency-groups]
