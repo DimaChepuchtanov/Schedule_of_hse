@@ -13,9 +13,9 @@ import "./schedule.css";
 
 function Brand() {
   return (
-    <div className="sp-brand" aria-label="Schedule HSE">
+    <div className="sp-brand" aria-label="Schedule">
       <span className="sp-brand__mark"><Icon name="calendar" size={23} /></span>
-      <span>Schedule<span className="sp-brand__dot">.</span><small>HSE</small></span>
+      <span>Schedule<span className="sp-brand__dot">.</span><small></small></span>
     </div>
   );
 }
@@ -283,7 +283,7 @@ export default function SchedulePage() {
         </main>
 
         <footer className="sp-page-footer">
-          <span>Schedule HSE</span>
+          <span>Schedule</span>
           <span>Расписание обновляется после публикации учебной частью</span>
         </footer>
       </div>
