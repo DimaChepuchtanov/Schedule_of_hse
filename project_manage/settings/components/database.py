@@ -25,6 +25,7 @@ DATABASES: Final[dict[str, dict[str, Any]]] = {
 
 class DataBaseSchems(StrEnum):
     IDENTITY = "identity"
+    REFERENCE = "reference"
 
 
 def get_database_table_name(schema: DataBaseSchems, table: str) -> str:

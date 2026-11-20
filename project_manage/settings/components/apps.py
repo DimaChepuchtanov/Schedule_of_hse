@@ -12,4 +12,5 @@ INSTALLED_APPS: Final[tuple[str]] = (
     'drf_spectacular',
     'identity',
     'schedule_data',
+    'reference_data'
 )
