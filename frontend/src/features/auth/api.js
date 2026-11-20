@@ -138,6 +138,7 @@ export function createAuthApi({
       };
     },
     login: (credentials) => post("/auth/", credentials),
+    register: (credentials) => post("/reg/", credentials),
     logout: () => post("/logout/", {}),
   };
 }
