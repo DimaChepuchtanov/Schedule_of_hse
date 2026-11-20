@@ -1,72 +1,93 @@
+import { useMemo } from "react";
+import { formatDate, isDate, todayISO } from "../model.js";
+import Icon from "./Icon.jsx";
 import LessonCard from "./LessonCard.jsx";
-import { dateLabel, lessonParts, shortDay } from "../model.js";
+import ScheduleState from "./ScheduleState.jsx";
 
-function Cards({ entries, selection, onSelect }) {
-  return entries.flatMap((entry) => lessonParts(entry).map((part, index) => {
-    const key = `${entry.id}:${index}`;
-    return <LessonCard key={key} entry={entry} part={part}
-      selected={selection?.key === key} onClick={() => onSelect({ key, entry, part })} />;
-  }));
-}
-
-export function WeekGrid({ data, entries, group, day, selection, onSelect }) {
-  const maxPeriod = Math.max(4, ...entries.map((entry) => entry.period));
+function TimeLabel({ time }) {
   return (
-    <div className="hs-table-wrap">
-      <table className="hs-table" aria-label={`Расписание ${group}`}>
-        <thead><tr>
-          <th className="hs-time-head" scope="col">Пара</th>
-          {data.days.map((item) => (
-            <th key={item.date} scope="col" className={item.date === day ? "hs-day-selected" : ""}>
-              <div className="hs-weekday">{shortDay(item.date)}</div>
-              <div className="hs-day-number">{item.date.slice(8, 10)}</div>
-            </th>
-          ))}
-        </tr></thead>
-        <tbody>{data.times.filter((time) => time.period <= maxPeriod).map((time) => (
-          <tr key={time.period}>
-            <th scope="row"><div className="hs-slot-number">{time.period}</div>
-              <div className="hs-slot-time">{time.start}</div>
-              <div className="hs-slot-time">{time.end}</div>
-            </th>
-            {data.days.map((item) => {
-              const lessons = entries.filter((entry) => entry.date === item.date && entry.period === time.period);
-              return <td key={item.date} className={item.date === day ? "hs-day-selected" : ""}>
-                {lessons.length
-                  ? <Cards entries={lessons} selection={selection} onSelect={onSelect} />
-                  : <span className="hs-empty" aria-label="Занятий нет">·</span>}
-              </td>;
-            })}
-          </tr>
-        ))}</tbody>
-      </table>
-    </div>
+    <span className="sp-time">
+      <strong>{String(time.period).padStart(2, "0")}<small>пара</small></strong>
+      {time.start && <span>{time.start}</span>}
+      {time.end && <span className="sp-time__end">{time.end}</span>}
+    </span>
   );
 }
 
-export function DayPicker({ days, value, onChange }) {
-  return <div className="hs-daybar" role="group" aria-label="День недели">
-    {days.map((day) => <button key={day.date} type="button" aria-pressed={value === day.date}
-      aria-label={`${day.name}, ${dateLabel(day.date)}`} onClick={() => onChange(day.date)}>
-      <span>{shortDay(day.date)}</span><strong>{day.date.slice(8, 10)}</strong>
-    </button>)}
-  </div>;
-}
+export default function Timetable({ data, entries, mode, day, base = false, onDay, onOpen }) {
+  const today = todayISO();
+  const bySlot = useMemo(() => {
+    const result = new Map();
+    for (const entry of entries) {
+      const key = entry.date + "|" + entry.period;
+      if (!result.has(key)) result.set(key, []);
+      result.get(key).push(entry);
+    }
+    return result;
+  }, [entries]);
 
-export function DayAgenda({ data, entries, day, selection, onSelect }) {
-  const lessons = entries.filter((entry) => entry.date === day).sort((a, b) => a.period - b.period);
-  const periods = [...new Set(lessons.map((entry) => entry.period))];
-  return <div className="hs-agenda" aria-label={`Занятия на ${dateLabel(day)}`}>
-    {!lessons.length && <div className="hs-agenda-empty">Занятий в этот день в файле нет.</div>}
-    {periods.map((period) => {
-      const time = data.times.find((item) => item.period === period);
-      return <div key={period} className="hs-agenda-row">
-        <div className="hs-agenda-clock"><strong>{period}-я пара</strong>
-          <div>{time.start}</div><div>{time.end}</div>
+  if (mode === "day") {
+    const selectedDay = data.days.find((item) => item.date === day);
+    const visibleTimes = data.times.filter((time) => bySlot.has(day + "|" + time.period));
+    return (
+      <section aria-label="Расписание на день" className="sp-day-view">
+        <div className="sp-day-view__heading">
+          <Icon name="calendar" />
+          <h3>{selectedDay?.name || "Учебный день"}</h3>
+          {!base && isDate(day) && <span>{formatDate(day)}</span>}
         </div>
-        <div><Cards entries={lessons.filter((entry) => entry.period === period)}
-          selection={selection} onSelect={onSelect} /></div>
-      </div>;
-    })}
-  </div>;
+        {visibleTimes.length ? visibleTimes.map((time) => (
+          <div className="sp-day-slot" key={time.period}>
+            <TimeLabel time={time} />
+            <div className="sp-day-slot__lessons">
+              {bySlot.get(day + "|" + time.period).map((entry) => (
+                <LessonCard key={entry.id} entry={entry} onOpen={onOpen} />
+              ))}
+            </div>
+          </div>
+        )) : <ScheduleState title="В этот день занятий нет" description="Можно выбрать другой день или изменить фильтры." />}
+      </section>
+    );
+  }
+
+  return (
+    <div className="sp-table-scroll" role="region" aria-label="Таблица расписания на неделю" tabIndex={0}>
+      <table className="sp-table">
+        <caption className="sp-sr-only">Расписание занятий по дням и номерам пар</caption>
+        <thead>
+          <tr>
+            <th scope="col" className="sp-table__time-head"><Icon name="clock" size={16} /><span>Пара</span></th>
+            {data.days.map((item) => (
+              <th scope="col" key={item.date} className={!base && item.date === today ? "sp-table__today" : ""}>
+                <button className="sp-day-heading" onClick={() => onDay(item.date)} type="button">
+                  <span>{item.name}</span>
+                  {!base && isDate(item.date) && <strong>{formatDate(item.date, { month: "short" })}</strong>}
+                  {!base && item.date === today && <small>Сегодня</small>}
+                </button>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.times.map((time) => (
+            <tr key={time.period}>
+              <th scope="row"><TimeLabel time={time} /></th>
+              {data.days.map((item) => {
+                const lessons = bySlot.get(item.date + "|" + time.period) || [];
+                return (
+                  <td key={item.date} className={!base && item.date === today ? "sp-table__today" : ""}>
+                    <div className="sp-cell">
+                      {lessons.length ? lessons.map((entry) => (
+                        <LessonCard key={entry.id} entry={entry} onOpen={onOpen} />
+                      )) : <span className="sp-cell__empty" aria-label="Нет занятий">·</span>}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }

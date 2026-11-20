@@ -1,23 +1,25 @@
-import { KIND_LABELS, lessonKind } from "../model.js";
+import { lessonParts } from "../model.js";
+import Icon from "./Icon.jsx";
 
-export default function LessonCard({ entry, part, selected, onClick }) {
-  const kind = lessonKind(entry, part);
-  const teachers = part.teachers.join("\n");
+export default function LessonCard({ entry, onOpen }) {
+  const { title, description, kind, label } = lessonParts(entry);
   return (
     <button
-      className={`hs-lesson ${kind === "lesson" ? "" : `hs-${kind}`}`}
+      className={"sp-lesson sp-lesson--" + kind}
+      onClick={() => onOpen(entry)}
       type="button"
-      aria-expanded={selected}
-      aria-controls="schedule-lesson-details"
-      aria-label={`${part.title}, ${entry.date}, пара ${entry.period}. Открыть подробности`}
-      title={[part.title, ...part.teachers].join(" · ")}
-      onClick={onClick}
+      aria-label={"Подробнее: " + title + ", " + entry.groups.join(", ")}
     >
-      <span className="hs-lesson-title">{part.title}</span>
-      <span className="hs-lesson-meta">
-        {teachers || (kind === "common" ? "Без уточнения преподавателя и аудитории" : "Без уточнений")}
+      <span className="sp-lesson__top">
+        <span className="sp-lesson__type">{label}</span>
+        <Icon name="arrow" size={13} />
       </span>
-      <span className="hs-lesson-label">{KIND_LABELS[kind]}</span>
+      <strong className="sp-lesson__title">{title}</strong>
+      {description && <span className="sp-lesson__description">{description}</span>}
+      <span className="sp-lesson__groups">
+        <Icon name="users" size={13} />
+        <span>{entry.groups.length ? entry.groups.join(", ") : entry.course}</span>
+      </span>
     </button>
   );
 }
