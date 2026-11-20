@@ -5,11 +5,13 @@ from uuid import uuid4
 
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db.models import (
+    PROTECT,
     BooleanField,
     CharField,
     DateField,
     DateTimeField,
     FileField,
+    ForeignKey,
     Model,
     PositiveIntegerField,
     TextChoices,
@@ -34,6 +36,15 @@ def schedule_upload_to(instance, filename: str) -> str:
 
 class Schedule(Model):
     uuid: UUIDField[UUID, UUID] = UUIDField(primary_key=True, default=uuid4, editable=False)
+
+    module = ForeignKey(
+        "reference_data.AcademicModule",
+        on_delete=PROTECT,
+        related_name="schedule_versions",
+        verbose_name="Учебный модуль",
+        null=True,
+        blank=True,
+    )
 
     kind: CharField[str, str] = CharField(
         verbose_name="Тип расписания",
