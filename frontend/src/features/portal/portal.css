@@ -87,6 +87,13 @@
 .portal-recent { margin-top: 2.5rem; }
 .portal-recent h2 { border-bottom: 1px solid #abc0ae; padding-bottom: .6em; }
 .portal-recent > div { padding: 3.5rem 1rem; text-align: center; color: #546b5d; }
+.directories { display: grid; gap: 1.5rem; }
+.directories section h2 { margin-bottom: .6rem; }
+.directories section h2 span { color: #546b5d; font-weight: 550; }
+.directories__wrap { overflow-x: auto; }
+.directories table { width: 100%; border-collapse: collapse; }
+.directories th, .directories td { padding: .55rem .7rem; border-bottom: 1px solid #abc0ae; text-align: left; }
+.directories th { color: #294c3c; }
 .portal-content dt { color: #546b5d; }
 .portal-content dd { margin: .25rem 0 1.25rem; font-weight: 600; }
 @media (max-width: 760px) {

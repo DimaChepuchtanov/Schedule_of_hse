@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { ArrowRight, BookOpen, CalendarDays, FileUp, History, House, LogOut, Users } from "lucide-react";
 import { authApi } from "../features/auth/api.js";
+import DirectoriesSection from "../features/reference/DirectoriesSection.jsx";
 import { initials } from "../features/users/model.js";
 import { PortalBrand, TimetableArt } from "../features/portal/PortalArt.jsx";
 
@@ -9,7 +10,7 @@ const sections = [
   { key: "overview", title: "Обзор", icon: House, to: "/menu/" },
   { title: "Загрузка данных", icon: FileUp, to: "/data-import/" },
   { key: "directories", title: "Справочники", icon: BookOpen, to: "/menu/?section=directories",
-    description: "Просмотр справочников будет доступен после подключения базы данных расписаний." },
+    description: "Вуз, корпуса, аудитории, пары и учебные модули пермского кампуса НИУ ВШЭ." },
   { key: "generate", title: "Генерация расписания", icon: CalendarDays, to: "/menu/?section=generate",
     description: "Генератор готовится к запуску. Пока можно проверить учебный план и нагрузку преподавателей." },
   { key: "history", title: "История расписаний", icon: History, to: "/menu/?section=history",
@@ -92,6 +93,7 @@ export default function MenuPage() {
         <h1>Профиль</h1><dl><dt>Имя сотрудника</dt><dd>{name}</dd><dt>Электронная почта</dt><dd>{user.login}</dd></dl>
       </> : section ? <>
         <h1>{section.title}</h1><p>{section.description}</p>
+        {key === "directories" && <DirectoriesSection />}
         {key === "generate" && <Link className="portal-primary" to="/data-import/">Проверить исходные данные <ArrowRight /></Link>}
       </> : <Navigate to="/menu/" replace />}
     </main>

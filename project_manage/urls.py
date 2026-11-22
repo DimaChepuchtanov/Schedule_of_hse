@@ -7,8 +7,8 @@ from drf_spectacular.views import (
 
 from identity.urls import urlpatterns as identity_urls
 from identity.views import ReactAuthPageView
+from reference_data.urls import urlpatterns as reference_data_urls
 from schedule_data.urls import urlpatterns as schedule_data_urls
-
 
 default_urls = [
     path(
@@ -72,6 +72,8 @@ urlpatterns = (
     + swagger_urls
     + pages_urls
     + identity_urls
+    + schedule_data_urls
+    + reference_data_urls
     + schedule_urls
     + frontend_urls
 )
