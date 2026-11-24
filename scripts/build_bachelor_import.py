@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from schedule_data.services import parse_workbook
+from schedule_data.services import parse_workbook  # noqa: E402
 
 # Указать путь к исходным файлам расписания
 SOURCES = [

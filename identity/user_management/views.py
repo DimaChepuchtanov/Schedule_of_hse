@@ -80,10 +80,11 @@ def user_model():
     ):
         try:
             model._meta.get_field(name)
-        except FieldDoesNotExist:
+        except FieldDoesNotExist as error:
             raise ApiFailure(
-                "Модель пользователя не настроена для управления доступом.", status=503
-            )
+                "Модель пользователя не настроена для управления доступом.",
+                status=503,
+            ) from error
     return model
 
 
@@ -110,8 +111,9 @@ def read_body(request, allowed):
         raise ApiFailure("Отправьте данные в формате JSON.", status=415)
     try:
         value = json.loads(request.body)
-    except (ValueError, UnicodeError):
-        raise ApiFailure("Не удалось прочитать JSON.")
+    except (ValueError, UnicodeError) as error:
+        raise ApiFailure("Не удалось прочитать JSON.") from error
+
     if not isinstance(value, dict):
         raise ApiFailure("Ожидается объект JSON.")
     if set(value) - set(allowed):
@@ -131,8 +133,11 @@ def clean_login(value, *, exclude=None):
         raise ApiFailure("Проверьте почту.", login=[f"Не более {maximum} символов."])
     try:
         validate_email(login)
-    except ValidationError:
-        raise ApiFailure("Проверьте почту.", login=["Введите корректную электронную почту."])
+    except ValidationError as error:
+        raise ApiFailure(
+            "Проверьте почту.",
+            login=["Введите корректную электронную почту."],
+        ) from error
     queryset = model.objects.filter(login__iexact=login)
     if exclude is not None:
         queryset = queryset.exclude(pk=exclude)
@@ -149,7 +154,10 @@ def clean_password(value, user):
     try:
         validate_password(value, user=user)
     except ValidationError as error:
-        raise ApiFailure("Проверьте пароль.", password=error.messages)
+        raise ApiFailure(
+            "Проверьте пароль.",
+            password=error.messages,
+        ) from error
     return value
 
 
@@ -171,8 +179,11 @@ def clean_active(value):
 def target(user_id):
     try:
         return user_model().objects.select_for_update().get(pk=user_id)
-    except user_model().DoesNotExist:
-        raise ApiFailure("Пользователь уже удалён или не существует.", status=404)
+    except user_model().DoesNotExist as error:
+        raise ApiFailure(
+            "Пользователь уже удалён или не существует.",
+            status=404,
+        ) from error
 
 
 def positive_int(value, default):

@@ -1,5 +1,6 @@
 from .base import *
 from .components import *
+from .config import Config
 
 DEBUG = False
 ALLOWED_HOSTS = [
