@@ -7,7 +7,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
-
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -30,6 +29,7 @@ def user_payload(user):
         "last_login": user.last_login.isoformat() if user.last_login else None,
     }
 
+
 @require_GET
 @never_cache
 @ensure_csrf_cookie
@@ -50,10 +50,12 @@ class CurrentUserView(APIView):
 
     def get(self, request):
         authenticated = request.user.is_authenticated
-        return Response({
-            "authenticated": authenticated,
-            "user": user_payload(request.user) if authenticated else None,
-        })
+        return Response(
+            {
+                "authenticated": authenticated,
+                "user": user_payload(request.user) if authenticated else None,
+            }
+        )
 
 
 @method_decorator(never_cache, name="dispatch")

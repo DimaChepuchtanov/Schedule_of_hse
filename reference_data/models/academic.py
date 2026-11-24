@@ -38,10 +38,7 @@ class AcademicModule(models.Model):
     ends_on = models.DateField(verbose_name="Дата окончания")
 
     def __str__(self) -> str:
-        return (
-            f"{self.number} модуль, "
-            f"{self.academic_year}/{self.academic_year + 1}"
-        )
+        return f"{self.number} модуль, {self.academic_year}/{self.academic_year + 1}"
 
     class Meta:
         db_table = get_database_table_name(

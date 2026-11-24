@@ -1,6 +1,6 @@
-from rest_framework.serializers import Serializer, EmailField, CharField
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
+from rest_framework.serializers import CharField, EmailField, Serializer
 
 
 class LoginSerializer(Serializer):
@@ -18,10 +18,7 @@ class LoginSerializer(Serializer):
         )
 
         if user is None:
-            raise ValidationError(
-                "Неверный логин или пароль."
-            )
+            raise ValidationError("Неверный логин или пароль.")
 
         attrs["user"] = user
         return attrs
-

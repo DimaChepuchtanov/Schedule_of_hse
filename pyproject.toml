@@ -42,3 +42,7 @@ select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.ruff.lint.per-file-ignores]
+"project_manage/settings/dev.py" = ["F403"]
+"project_manage/settings/prod.py" = ["F403"]

@@ -42,26 +42,49 @@ def admin_endpoint(*methods):
             if not actor.is_authenticated:
                 return JsonResponse({"detail": "Сессия завершена. Войдите в аккаунт."}, status=401)
             if not actor.is_active or not getattr(actor, "is_superuser", False):
-                return JsonResponse({"detail": "Управлять пользователями может только администратор."}, status=403)
+                return JsonResponse(
+                    {"detail": "Управлять пользователями может только администратор."}, status=403
+                )
             try:
                 return view(request, *args, **kwargs)
             except ApiFailure as error:
                 return JsonResponse({"detail": error.message, **error.fields}, status=error.status)
             except (ProtectedError, RestrictedError):
-                return JsonResponse({"detail": "Пользователь связан с другими данными. Отключите доступ вместо удаления."}, status=409)
+                return JsonResponse(
+                    {
+                        "detail": "Пользователь связан с другими данными. Отключите доступ вместо удаления."
+                    },
+                    status=409,
+                )
             except IntegrityError:
-                return JsonResponse({"detail": "Данные изменились или такая почта уже занята. Обновите список."}, status=409)
+                return JsonResponse(
+                    {"detail": "Данные изменились или такая почта уже занята. Обновите список."},
+                    status=409,
+                )
+
         return wrapped
+
     return decorate
 
 
 def user_model():
     model = get_user_model()
-    for name in ("login", "display_name", "created_at", "last_login", "is_active", "is_staff", "is_superuser"):
+    for name in (
+        "login",
+        "display_name",
+        "created_at",
+        "last_login",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+    ):
         try:
             model._meta.get_field(name)
-        except FieldDoesNotExist:
-            raise ApiFailure("Модель пользователя не настроена для управления доступом.", status=503)
+        except FieldDoesNotExist as error:
+            raise ApiFailure(
+                "Модель пользователя не настроена для управления доступом.",
+                status=503,
+            ) from error
     return model
 
 
@@ -88,12 +111,15 @@ def read_body(request, allowed):
         raise ApiFailure("Отправьте данные в формате JSON.", status=415)
     try:
         value = json.loads(request.body)
-    except (ValueError, UnicodeError):
-        raise ApiFailure("Не удалось прочитать JSON.")
+    except (ValueError, UnicodeError) as error:
+        raise ApiFailure("Не удалось прочитать JSON.") from error
+
     if not isinstance(value, dict):
         raise ApiFailure("Ожидается объект JSON.")
     if set(value) - set(allowed):
-        raise ApiFailure("Запрос содержит недопустимые поля. Роль и административные права здесь не изменяются.")
+        raise ApiFailure(
+            "Запрос содержит недопустимые поля. Роль и административные права здесь не изменяются."
+        )
     return value
 
 
@@ -107,13 +133,18 @@ def clean_login(value, *, exclude=None):
         raise ApiFailure("Проверьте почту.", login=[f"Не более {maximum} символов."])
     try:
         validate_email(login)
-    except ValidationError:
-        raise ApiFailure("Проверьте почту.", login=["Введите корректную электронную почту."])
+    except ValidationError as error:
+        raise ApiFailure(
+            "Проверьте почту.",
+            login=["Введите корректную электронную почту."],
+        ) from error
     queryset = model.objects.filter(login__iexact=login)
     if exclude is not None:
         queryset = queryset.exclude(pk=exclude)
     if queryset.exists():
-        raise ApiFailure("Почта уже используется.", login=["Пользователь с такой почтой уже существует."])
+        raise ApiFailure(
+            "Почта уже используется.", login=["Пользователь с такой почтой уже существует."]
+        )
     return login
 
 
@@ -123,7 +154,10 @@ def clean_password(value, user):
     try:
         validate_password(value, user=user)
     except ValidationError as error:
-        raise ApiFailure("Проверьте пароль.", password=error.messages)
+        raise ApiFailure(
+            "Проверьте пароль.",
+            password=error.messages,
+        ) from error
     return value
 
 
@@ -145,8 +179,11 @@ def clean_active(value):
 def target(user_id):
     try:
         return user_model().objects.select_for_update().get(pk=user_id)
-    except user_model().DoesNotExist:
-        raise ApiFailure("Пользователь уже удалён или не существует.", status=404)
+    except user_model().DoesNotExist as error:
+        raise ApiFailure(
+            "Пользователь уже удалён или не существует.",
+            status=404,
+        ) from error
 
 
 def positive_int(value, default):
@@ -170,7 +207,13 @@ def collection(request):
         display_name = clean_name(data.get("display_name"))
         login = clean_login(data.get("login"))
         active = clean_active(data.get("is_active", True))
-        user = model(display_name=display_name, login=login, is_active=active, is_staff=False, is_superuser=False)
+        user = model(
+            display_name=display_name,
+            login=login,
+            is_active=active,
+            is_staff=False,
+            is_superuser=False,
+        )
         password_value = clean_password(data.get("password"), user)
         user.set_password(password_value)
         with transaction.atomic():
@@ -178,7 +221,11 @@ def collection(request):
         return JsonResponse(payload(user, request.user), status=201)
 
     all_users = model.objects.all()
-    summary = {"total": all_users.count(), "active": all_users.filter(is_active=True).count(), "inactive": all_users.filter(is_active=False).count()}
+    summary = {
+        "total": all_users.count(),
+        "active": all_users.filter(is_active=True).count(),
+        "inactive": all_users.filter(is_active=False).count(),
+    }
     queryset = all_users
     query = request.GET.get("q", "").strip()[:250]
     if query:
@@ -194,12 +241,25 @@ def collection(request):
     page_size = min(positive_int(request.GET.get("page_size", 6), 6), 100)
     paginator = Paginator(queryset.order_by("-is_superuser", "login", "pk"), page_size)
     page = paginator.get_page(positive_int(request.GET.get("page", 1), 1))
-    return JsonResponse({"results": [payload(user, request.user) for user in page], "count": paginator.count, "page": page.number, "page_size": page_size, "pages": paginator.num_pages, "summary": summary})
+    return JsonResponse(
+        {
+            "results": [payload(user, request.user) for user in page],
+            "count": paginator.count,
+            "page": page.number,
+            "page_size": page_size,
+            "pages": paginator.num_pages,
+            "summary": summary,
+        }
+    )
 
 
 @admin_endpoint("PATCH", "DELETE")
 def detail(request, user_id):
-    data = read_body(request, {"display_name", "login", "is_active"}) if request.method == "PATCH" else None
+    data = (
+        read_body(request, {"display_name", "login", "is_active"})
+        if request.method == "PATCH"
+        else None
+    )
     with transaction.atomic():
         user = target(user_id)
         if request.method == "DELETE":

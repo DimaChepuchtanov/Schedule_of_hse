@@ -92,9 +92,7 @@ def parse_excel(source, *, filename: str) -> dict:
     """Разобрать открытый XLSX старого вузовского шаблона."""
 
     if Path(filename).suffix.lower() != ".xlsx":
-        raise ScheduleFormatError(
-            "Расписание должно быть в формате .xlsx."
-        )
+        raise ScheduleFormatError("Расписание должно быть в формате .xlsx.")
 
     try:
         workbook = load_workbook(
@@ -110,9 +108,7 @@ def parse_excel(source, *, filename: str) -> dict:
         SyntaxError,
         EOFError,
     ) as error:
-        raise ScheduleFormatError(
-            "Не удалось открыть книгу XLSX."
-        ) from error
+        raise ScheduleFormatError("Не удалось открыть книгу XLSX.") from error
 
     courses, entries, notes = [], [], []
     times, days = {}, {}
@@ -231,9 +227,7 @@ def parse_excel(source, *, filename: str) -> dict:
 
 def read_schedule_xlsx(xlsx_file) -> dict:
     if not xlsx_file:
-        raise ScheduleFormatError(
-            "У версии расписания не указан XLSX-файл."
-        )
+        raise ScheduleFormatError("У версии расписания не указан XLSX-файл.")
 
     with xlsx_file.open("rb") as source:
         return parse_excel(

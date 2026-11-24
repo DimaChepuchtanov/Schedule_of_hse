@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from schedule_data.services import parse_workbook
+from schedule_data.services import parse_workbook  # noqa: E402
 
 # Указать путь к исходным файлам расписания
 SOURCES = [
@@ -52,13 +52,23 @@ SKIP_RE = re.compile(r"отдельн\w*\s+расписан|физическ\w*\
 
 GROUP_HEADERS = ("Направление", "Курс", "Код группы", "Код подгруппы", "Численность")
 PLAN_HEADERS = (
-    "Предмет", "Направление", "Курс", "Вид занятия",
-    "Для кого", "Часы", "Требования к аудитории",
+    "Предмет",
+    "Направление",
+    "Курс",
+    "Вид занятия",
+    "Для кого",
+    "Часы",
+    "Требования к аудитории",
 )
 LOAD_HEADERS = (
-    "Предмет", "Код преподавателя", "Преподаватель",
-    "Лекции, часы", "Семинары, часы", "Ограничения",
-    "Направление", "Курс",
+    "Предмет",
+    "Код преподавателя",
+    "Преподаватель",
+    "Лекции, часы",
+    "Семинары, часы",
+    "Ограничения",
+    "Направление",
+    "Курс",
 )
 
 
@@ -73,8 +83,10 @@ def _read_sheets(path: Path) -> list[tuple[str, list[list[str]]]]:
             (
                 name,
                 [
-                    [_clean_space(str(book.sheet_by_name(name).cell_value(row, col)))
-                     for col in range(book.sheet_by_name(name).ncols)]
+                    [
+                        _clean_space(str(book.sheet_by_name(name).cell_value(row, col)))
+                        for col in range(book.sheet_by_name(name).ncols)
+                    ]
                     for row in range(book.sheet_by_name(name).nrows)
                 ],
             )
@@ -146,7 +158,9 @@ def _teacher_name(match: re.Match[str]) -> str:
     return _clean_space(f"{match.group(1)} {match.group(2)}.{patronymic}")
 
 
-def _lesson(subject: str, lesson_type: str, explicit: bool, teacher: str, room: str, subgroup: str) -> dict[str, str]:
+def _lesson(
+    subject: str, lesson_type: str, explicit: bool, teacher: str, room: str, subgroup: str
+) -> dict[str, str]:
     return {
         "subject": subject,
         "type": lesson_type,
@@ -168,9 +182,9 @@ def _parse_lessons(cell: str) -> list[dict[str, str]]:
     previous_explicit = False
     for index, match in enumerate(matches):
         start = 0 if index == 0 else matches[index - 1].end()
-        raw_subject = ROOM_PREFIX_RE.sub("", cell[start:match.start()])
+        raw_subject = ROOM_PREFIX_RE.sub("", cell[start : match.start()])
         tail_end = matches[index + 1].start() if index + 1 < len(matches) else len(cell)
-        room_match = ROOM_RE.search(cell[match.end():tail_end])
+        room_match = ROOM_RE.search(cell[match.end() : tail_end])
         room = room_match.group(1) if room_match else ""
         subgroup_match = re.search(r",\s*(\d+)\s*$", room)
         subject = _subject_name(raw_subject)
@@ -186,14 +200,16 @@ def _parse_lessons(cell: str) -> list[dict[str, str]]:
             previous_subject = subject
             previous_type = lesson_type
             previous_explicit = explicit
-        lessons.append(_lesson(
-            subject,
-            lesson_type,
-            explicit,
-            _teacher_name(match),
-            _clean_space(room),
-            subgroup_match.group(1) if subgroup_match else "",
-        ))
+        lessons.append(
+            _lesson(
+                subject,
+                lesson_type,
+                explicit,
+                _teacher_name(match),
+                _clean_space(room),
+                subgroup_match.group(1) if subgroup_match else "",
+            )
+        )
     if lessons:
         return lessons
     subject = _subject_name(cell)
@@ -245,7 +261,7 @@ def collect() -> dict:
                     "Численность": "н/д",
                 }
             day = ""
-            for row in rows[header + 1:]:
+            for row in rows[header + 1 :]:
                 if not row:
                     continue
                 if SKIP_RE.search(row[0]):
@@ -277,16 +293,18 @@ def collect() -> dict:
                             explicit_types["без пометки"] += 1
                         grouped[key].append(lesson)
                         if lesson["teacher"]:
-                            workload.add((
-                                module,
-                                course,
-                                day,
-                                pair,
-                                lesson["teacher"],
-                                key[0],
-                                lesson["type"],
-                                groups[code]["Направление"],
-                            ))
+                            workload.add(
+                                (
+                                    module,
+                                    course,
+                                    day,
+                                    pair,
+                                    lesson["teacher"],
+                                    key[0],
+                                    lesson["type"],
+                                    groups[code]["Направление"],
+                                )
+                            )
                     for (subject_key, lesson_type), items in grouped.items():
                         bucket = buckets.setdefault(
                             (module, course, code, subject_key, lesson_type),
@@ -320,12 +338,18 @@ def _display_titles(titles: Counter[str]) -> dict[str, str]:
     for title, count in titles.items():
         key = _subject_key(title)
         current = best.get(key)
-        if current is None or count > current[0] or (count == current[0] and len(title) > len(current[1])):
+        if (
+            current is None
+            or count > current[0]
+            or (count == current[0] and len(title) > len(current[1]))
+        ):
             best[key] = (count, title)
     return {key: title for key, (_, title) in best.items()}
 
 
-def build_tables(data: dict) -> tuple[list[dict[str, str]], list[dict[str, str]], list[dict[str, str]]]:
+def build_tables(
+    data: dict,
+) -> tuple[list[dict[str, str]], list[dict[str, str]], list[dict[str, str]]]:
     titles = _display_titles(data["titles"])
     groups: dict[str, dict[str, str]] = data["groups"]
     by_direction: dict[tuple[str, str], list[str]] = defaultdict(list)
@@ -354,20 +378,32 @@ def build_tables(data: dict) -> tuple[list[dict[str, str]], list[dict[str, str]]
     for (direction, course, subject_key, lesson_type, hours), entries in clustered.items():
         codes = sorted({code for code, _ in entries})
         everyone = sorted(by_direction[(direction, course)])
-        study_plan.append({
-            "Предмет": titles[subject_key],
-            "Направление": direction,
-            "Курс": course,
-            "Вид занятия": lesson_type,
-            "Для кого": "Каждая группа" if codes == everyone else ", ".join(codes),
-            "Часы": str(hours),
-            "Требования к аудитории": "Онлайн" if all(flag for _, flag in entries) else "",
-        })
-    study_plan.sort(key=lambda row: (int(row["Курс"]), row["Направление"], row["Предмет"], row["Вид занятия"], row["Для кого"]))
+        study_plan.append(
+            {
+                "Предмет": titles[subject_key],
+                "Направление": direction,
+                "Курс": course,
+                "Вид занятия": lesson_type,
+                "Для кого": "Каждая группа" if codes == everyone else ", ".join(codes),
+                "Часы": str(hours),
+                "Требования к аудитории": "Онлайн" if all(flag for _, flag in entries) else "",
+            }
+        )
+    study_plan.sort(
+        key=lambda row: (
+            int(row["Курс"]),
+            row["Направление"],
+            row["Предмет"],
+            row["Вид занятия"],
+            row["Для кого"],
+        )
+    )
 
     teachers = sorted({slot[4] for slot in data["workload"]})
     teacher_codes = {name: f"teacher-{index:03d}" for index, name in enumerate(teachers, 1)}
-    module_hours: dict[tuple, dict[int, list[int]]] = defaultdict(lambda: defaultdict(lambda: [0, 0]))
+    module_hours: dict[tuple, dict[int, list[int]]] = defaultdict(
+        lambda: defaultdict(lambda: [0, 0])
+    )
     seen: set[tuple] = set()
     for module, course, day, pair, teacher, subject_key, lesson_type, direction in data["workload"]:
         slot = (module, course, day, pair, teacher, subject_key, lesson_type, direction)
@@ -382,20 +418,29 @@ def build_tables(data: dict) -> tuple[list[dict[str, str]], list[dict[str, str]]
     for (course, direction, subject_key, teacher), by_module in module_hours.items():
         lectures = max(hours[0] for hours in by_module.values())
         seminars = max(hours[1] for hours in by_module.values())
-        workload_rows.append({
-            "Предмет": titles[subject_key],
-            "Код преподавателя": teacher_codes[teacher],
-            "Преподаватель": teacher,
-            "Лекции, часы": str(lectures),
-            "Семинары, часы": str(seminars),
-            "Ограничения": "",
-            "Направление": direction,
-            "Курс": course,
-        })
-    workload_rows.sort(key=lambda row: (
-        int(row["Курс"]), row["Направление"], row["Предмет"], row["Преподаватель"],
-    ))
-    group_rows = sorted(groups.values(), key=lambda row: (int(row["Курс"]), row["Направление"], row["Код группы"]))
+        workload_rows.append(
+            {
+                "Предмет": titles[subject_key],
+                "Код преподавателя": teacher_codes[teacher],
+                "Преподаватель": teacher,
+                "Лекции, часы": str(lectures),
+                "Семинары, часы": str(seminars),
+                "Ограничения": "",
+                "Направление": direction,
+                "Курс": course,
+            }
+        )
+    workload_rows.sort(
+        key=lambda row: (
+            int(row["Курс"]),
+            row["Направление"],
+            row["Предмет"],
+            row["Преподаватель"],
+        )
+    )
+    group_rows = sorted(
+        groups.values(), key=lambda row: (int(row["Курс"]), row["Направление"], row["Код группы"])
+    )
     return group_rows, study_plan, workload_rows
 
 
@@ -423,16 +468,23 @@ def main() -> None:
     groups, study_plan, workload = build_tables(data)
     directions_path = OUTPUT_DIR / "Направления.xlsx"
     workload_path = OUTPUT_DIR / "Нагрузка.xlsx"
-    _write(directions_path, [
-        ("Группы", GROUP_HEADERS, groups),
-        ("Учебный план", PLAN_HEADERS, study_plan),
-    ])
+    _write(
+        directions_path,
+        [
+            ("Группы", GROUP_HEADERS, groups),
+            ("Учебный план", PLAN_HEADERS, study_plan),
+        ],
+    )
     _write(workload_path, [("Нагрузка", LOAD_HEADERS, workload)])
     _validate(directions_path, "directions")
     _validate(workload_path, "workload")
     lectures = sum(1 for row in study_plan if row["Вид занятия"] == "Лекция")
-    print(f"groups={len(groups)} plan={len(study_plan)} lectures={lectures} workload={len(workload)}")
-    print(f"parsed_cells={data['parsed_cells']} missed_cells={data['missed_cells']} skipped_course5_columns={data['skipped_groups']}")
+    print(
+        f"groups={len(groups)} plan={len(study_plan)} lectures={lectures} workload={len(workload)}"
+    )
+    print(
+        f"parsed_cells={data['parsed_cells']} missed_cells={data['missed_cells']} skipped_course5_columns={data['skipped_groups']}"
+    )
     print(f"types={dict(data['explicit_types'])}")
     print("--- missed ---")
     for sample in data["missed_samples"]:

@@ -1,6 +1,5 @@
 from typing import Final
 
-
 MIDDLEWARE: Final[tuple[str]] = (
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",

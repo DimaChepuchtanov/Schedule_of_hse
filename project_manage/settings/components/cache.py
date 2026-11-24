@@ -8,8 +8,7 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": (
-            f"redis://:{redis_password}@"
-            f"{Config.REDIS_HOST}:{Config.REDIS_PORT}/{Config.REDIS_DB}"
+            f"redis://:{redis_password}@{Config.REDIS_HOST}:{Config.REDIS_PORT}/{Config.REDIS_DB}"
         ),
         "TIMEOUT": 3600,
         "KEY_PREFIX": "schedule_hse",

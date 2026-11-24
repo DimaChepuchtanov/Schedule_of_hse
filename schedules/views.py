@@ -12,7 +12,6 @@ from .models import Schedule
 from .services.public_schedule import get_public_schedule
 from .services.xlsx_reader import ScheduleFormatError
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -46,16 +45,12 @@ def parse_period(
 
     if kind == "BASE":
         if raw_week:
-            raise ValueError(
-                "Для базового расписания week_start не задаётся."
-            )
+            raise ValueError("Для базового расписания week_start не задаётся.")
 
         return module_id, kind, None
 
     if not fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", raw_week):
-        raise ValueError(
-            "Для недельного расписания укажи week_start: YYYY-MM-DD."
-        )
+        raise ValueError("Для недельного расписания укажи week_start: YYYY-MM-DD.")
 
     try:
         week_start = date.fromisoformat(raw_week)
@@ -71,8 +66,7 @@ def parse_period(
 @require_GET
 def published_versions(request: HttpRequest) -> JsonResponse:
     versions = (
-        Schedule.objects
-        .filter(is_published=True)
+        Schedule.objects.filter(is_published=True)
         .order_by("module_id", "kind", "-week_start", "-revision")
         .values(
             "uuid",
@@ -109,9 +103,7 @@ def published_schedule(request: HttpRequest) -> JsonResponse:
         )
 
     except Schedule.MultipleObjectsReturned:
-        logger.exception(
-            "Для одного периода найдено несколько опубликованных расписаний."
-        )
+        logger.exception("Для одного периода найдено несколько опубликованных расписаний.")
         return json_response(
             {"detail": "Не удалось однозначно выбрать расписание."},
             status=503,

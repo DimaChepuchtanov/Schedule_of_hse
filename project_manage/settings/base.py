@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from .config import Config
 
 SECRET_KEY = Config.SECRET_KEY
@@ -6,14 +7,12 @@ SECRET_KEY = Config.SECRET_KEY
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # config URL
-ROOT_URLCONF = 'project_manage.urls'
-WSGI_APPLICATION = 'project_manage.wsgi.application'
+ROOT_URLCONF = "project_manage.urls"
+WSGI_APPLICATION = "project_manage.wsgi.application"
 
 # Internationalization
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-
-

@@ -1,23 +1,22 @@
 from pathlib import Path
-from typing import Final, Any
-
+from typing import Any, Final
 
 WORD_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 TEMPLATES: Final[tuple[dict[str, Any]]] = (
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            WORD_DIR / 'templates',
-            PROJECT_ROOT / 'frontend',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            WORD_DIR / "templates",
+            PROJECT_ROOT / "frontend",
         ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
@@ -25,8 +24,8 @@ TEMPLATES: Final[tuple[dict[str, Any]]] = (
 
 STATIC_URL = "/static/"
 
-STATIC_ROOT = PROJECT_ROOT / 'staticfiles'
+STATIC_ROOT = PROJECT_ROOT / "staticfiles"
 
 STATICFILES_DIRS = [
-    ('frontend', PROJECT_ROOT / 'frontend' / 'dist'),
+    ("frontend", PROJECT_ROOT / "frontend" / "dist"),
 ]

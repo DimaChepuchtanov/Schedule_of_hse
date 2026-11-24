@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-
-from typing import Final, Any
-
+from typing import Any, Final
 
 from ..config import Config
 
@@ -11,16 +9,15 @@ from ..config import Config
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 DATABASES: Final[dict[str, dict[str, Any]]] = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': Config.PG_DATABASE,
-        'USER': Config.PG_USER,
-        'PASSWORD': Config.PG_PASSWORD,
-        'HOST': Config.PG_HOST,
-        'PORT': Config.PG_PORT,
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": Config.PG_DATABASE,
+        "USER": Config.PG_USER,
+        "PASSWORD": Config.PG_PASSWORD,
+        "HOST": Config.PG_HOST,
+        "PORT": Config.PG_PORT,
     }
 }
-
 
 
 class DataBaseSchems(StrEnum):
