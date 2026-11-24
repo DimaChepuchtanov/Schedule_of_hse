@@ -1,112 +1,83 @@
 import { useEffect, useState } from "react";
-
-const TABLES = [
-  {
-    key: "universities",
-    title: "Вуз",
-    columns: [
-      ["name", "Название"],
-      ["timezone", "Часовой пояс"],
-      ["pair_minutes", "Пара, мин"],
-      ["academic_hour_minutes", "Академический час, мин"],
-      ["transfer_minutes", "Переход, мин"],
-    ],
-  },
-  {
-    key: "buildings",
-    title: "Корпуса",
-    columns: [
-      ["name", "Корпус"],
-      ["address", "Адрес"],
-      ["university", "Вуз"],
-    ],
-  },
-  {
-    key: "rooms",
-    title: "Аудитории",
-    columns: [
-      ["building", "Корпус"],
-      ["number", "Номер"],
-      ["capacity", "Вместимость"],
-      ["room_type", "Тип"],
-      ["is_active", "Активна"],
-    ],
-  },
-  {
-    key: "time_slots",
-    title: "Пары",
-    columns: [
-      ["number", "Номер"],
-      ["starts_at", "Начало"],
-      ["ends_at", "Конец"],
-    ],
-  },
-  {
-    key: "modules",
-    title: "Учебные модули",
-    columns: [
-      ["number", "Модуль"],
-      ["academic_year", "Год начала"],
-      ["starts_on", "Начало занятий"],
-      ["ends_on", "Конец занятий"],
-    ],
-  },
-];
-
-function cellValue(row, key) {
-  const value = row[key];
-  if (typeof value === "boolean") return value ? "Да" : "Нет";
-  return value ?? "";
-}
+import { ArrowLeft } from "lucide-react";
+import { Link, useSearchParams } from "react-router";
+import DirectoryCards from "./components/DirectoryCards.jsx";
+import DirectoryTable from "./components/DirectoryTable.jsx";
+import { DIRECTORIES, MODULES_TABLE } from "./catalog.js";
+import "./reference.css";
 
 export default function DirectoriesSection() {
+  const [params] = useSearchParams();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const selectedKey = params.get("directory");
+  const selected = DIRECTORIES.find((directory) => directory.key === selectedKey);
+
+  function directoryHref(key) {
+    const next = new URLSearchParams(params);
+    next.set("section", "directories");
+    if (key) next.set("directory", key);
+    else next.delete("directory");
+    return `?${next}`;
+  }
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/reference/", { credentials: "include", cache: "no-store", signal: controller.signal })
+    setError("");
+    fetch("/api/reference/", {
+      credentials: "include",
+      cache: "no-store",
+      signal: controller.signal,
+    })
       .then(async (response) => {
         const payload = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(payload?.errors?.[0] || "Не удалось загрузить справочники.");
+        if (!response.ok) {
+          throw new Error(payload?.errors?.[0] || "Не удалось загрузить справочники.");
+        }
+        if (!payload || DIRECTORIES.some(({ key }) => !Array.isArray(payload[key]))) {
+          throw new Error("Сервер вернул справочники в неверном формате.");
+        }
         return payload;
       })
       .then((payload) => {
         if (!controller.signal.aborted) setData(payload);
       })
       .catch((failure) => {
-        if (!controller.signal.aborted && failure.name !== "AbortError") setError(failure.message);
+        if (!controller.signal.aborted && failure.name !== "AbortError") {
+          setError(failure.message);
+        }
       });
     return () => controller.abort();
-  }, []);
+  }, [attempt]);
 
-  if (error) return <p role="alert">{error}</p>;
+  if (error) {
+    return (
+      <div className="directories__state">
+        <p role="alert">{error}</p>
+        <button className="directories__retry" onClick={() => setAttempt((value) => value + 1)}>
+          Повторить загрузку
+        </button>
+      </div>
+    );
+  }
   if (!data) return <p role="status">Загружаем справочники…</p>;
 
   return (
     <div className="directories">
-      <p>Вместимость аудиторий пока указана как 50 мест, так как открытой цифры по кампусу нет.</p>
-      {TABLES.map((table) => (
-        <section key={table.key}>
-          <h2>{table.title} <span>({data[table.key]?.length || 0})</span></h2>
-          {data[table.key]?.length ? (
-            <div className="directories__wrap">
-              <table>
-                <thead>
-                  <tr>{table.columns.map(([, title]) => <th key={title}>{title}</th>)}</tr>
-                </thead>
-                <tbody>
-                  {data[table.key].map((row) => (
-                    <tr key={row.id}>
-                      {table.columns.map(([key]) => <td key={key}>{cellValue(row, key)}</td>)}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : <p>Записей нет.</p>}
-        </section>
-      ))}
+      {selected ? (
+        <>
+          <Link className="directories__back" to={directoryHref()}>
+            <ArrowLeft size={18} aria-hidden="true" /> Все справочники
+          </Link>
+          <DirectoryTable definition={selected} rows={data[selected.key]} />
+          {selected.key === "universities" && (
+            <DirectoryTable definition={MODULES_TABLE} rows={data.modules || []} />
+          )}
+        </>
+      ) : (
+        <DirectoryCards data={data} directoryHref={directoryHref} />
+      )}
     </div>
   );
 }
