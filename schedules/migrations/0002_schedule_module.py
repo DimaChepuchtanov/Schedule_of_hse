@@ -5,16 +5,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reference_data', '0002_academicmodule'),
-        ('schedules', '0001_initial'),
+        ("reference_data", "0002_academicmodule"),
+        ("schedules", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='schedule',
-            name='module',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='schedule_versions', to='reference_data.academicmodule', verbose_name='Учебный модуль'),
+            model_name="schedule",
+            name="module",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="schedule_versions",
+                to="reference_data.academicmodule",
+                verbose_name="Учебный модуль",
+            ),
         ),
     ]

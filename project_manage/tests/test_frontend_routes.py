@@ -6,17 +6,21 @@ from identity.views import CurrentUserView
 
 @override_settings(
     ALLOWED_HOSTS=["testserver"],
-    TEMPLATES=[{
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": False,
-        "OPTIONS": {
-            "loaders": [(
-                "django.template.loaders.locmem.Loader",
-                {"dist/index.html": '<div data-app="react"></div>'},
-            )],
-        },
-    }],
+    TEMPLATES=[
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "DIRS": [],
+            "APP_DIRS": False,
+            "OPTIONS": {
+                "loaders": [
+                    (
+                        "django.template.loaders.locmem.Loader",
+                        {"dist/index.html": '<div data-app="react"></div>'},
+                    )
+                ],
+            },
+        }
+    ],
 )
 class FrontendRouteTests(SimpleTestCase):
     """SPA navigation must work without using a database or a frontend build."""

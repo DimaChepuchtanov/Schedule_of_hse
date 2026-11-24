@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from uuid import uuid4
-from typing import TYPE_CHECKING, override
 from datetime import datetime
+from typing import TYPE_CHECKING, override
+from uuid import uuid4
 
-from django.db.models import DateTimeField, UUIDField, EmailField, CharField, BooleanField
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db.models import BooleanField, CharField, DateTimeField, EmailField, UUIDField
 
 from project_manage.settings.components.database import DataBaseSchems, get_database_table_name
-
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -51,7 +50,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         verbose_name="Уникальный номер пользователя",
         primary_key=True,
         default=uuid4,
-        editable=False
+        editable=False,
     )
 
     display_name: CharField[str, str] = CharField(
@@ -60,15 +59,11 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     )
 
     login: EmailField[str, str] = EmailField(
-        verbose_name="Логин пользователя",
-        null=False,
-        max_length=250,
-        unique=True
+        verbose_name="Логин пользователя", null=False, max_length=250, unique=True
     )
 
     created_at: DateTimeField[datetime, datetime] = DateTimeField(
-        verbose_name="Дата создания пользователя",
-        auto_now_add=True
+        verbose_name="Дата создания пользователя", auto_now_add=True
     )
 
     last_login: DateTimeField[datetime, datetime] = DateTimeField(
@@ -81,20 +76,12 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     is_superuser = BooleanField(default=False)
     is_active = BooleanField(default=True)
 
-
     USERNAME_FIELD = "login"
     REQUIRED_FIELDS = ["display_name"]
-
 
     @override
     def __str__(self):
         return f"Пользователь: {self.login}"
 
-
     class Meta:
-        db_table = get_database_table_name(
-            DataBaseSchems.IDENTITY,
-            "user"
-        )
-    
-    
+        db_table = get_database_table_name(DataBaseSchems.IDENTITY, "user")

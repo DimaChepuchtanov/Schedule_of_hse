@@ -58,7 +58,10 @@ class Schedule(Model):
     )
 
     revision: PositiveIntegerField[int, int] = PositiveIntegerField(
-        verbose_name="Номер версии", validators=[MinValueValidator(1),]
+        verbose_name="Номер версии",
+        validators=[
+            MinValueValidator(1),
+        ],
     )
 
     xlsx_file = FileField(

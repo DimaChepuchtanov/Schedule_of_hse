@@ -42,26 +42,48 @@ def admin_endpoint(*methods):
             if not actor.is_authenticated:
                 return JsonResponse({"detail": "Сессия завершена. Войдите в аккаунт."}, status=401)
             if not actor.is_active or not getattr(actor, "is_superuser", False):
-                return JsonResponse({"detail": "Управлять пользователями может только администратор."}, status=403)
+                return JsonResponse(
+                    {"detail": "Управлять пользователями может только администратор."}, status=403
+                )
             try:
                 return view(request, *args, **kwargs)
             except ApiFailure as error:
                 return JsonResponse({"detail": error.message, **error.fields}, status=error.status)
             except (ProtectedError, RestrictedError):
-                return JsonResponse({"detail": "Пользователь связан с другими данными. Отключите доступ вместо удаления."}, status=409)
+                return JsonResponse(
+                    {
+                        "detail": "Пользователь связан с другими данными. Отключите доступ вместо удаления."
+                    },
+                    status=409,
+                )
             except IntegrityError:
-                return JsonResponse({"detail": "Данные изменились или такая почта уже занята. Обновите список."}, status=409)
+                return JsonResponse(
+                    {"detail": "Данные изменились или такая почта уже занята. Обновите список."},
+                    status=409,
+                )
+
         return wrapped
+
     return decorate
 
 
 def user_model():
     model = get_user_model()
-    for name in ("login", "display_name", "created_at", "last_login", "is_active", "is_staff", "is_superuser"):
+    for name in (
+        "login",
+        "display_name",
+        "created_at",
+        "last_login",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+    ):
         try:
             model._meta.get_field(name)
         except FieldDoesNotExist:
-            raise ApiFailure("Модель пользователя не настроена для управления доступом.", status=503)
+            raise ApiFailure(
+                "Модель пользователя не настроена для управления доступом.", status=503
+            )
     return model
 
 
@@ -93,7 +115,9 @@ def read_body(request, allowed):
     if not isinstance(value, dict):
         raise ApiFailure("Ожидается объект JSON.")
     if set(value) - set(allowed):
-        raise ApiFailure("Запрос содержит недопустимые поля. Роль и административные права здесь не изменяются.")
+        raise ApiFailure(
+            "Запрос содержит недопустимые поля. Роль и административные права здесь не изменяются."
+        )
     return value
 
 
@@ -113,7 +137,9 @@ def clean_login(value, *, exclude=None):
     if exclude is not None:
         queryset = queryset.exclude(pk=exclude)
     if queryset.exists():
-        raise ApiFailure("Почта уже используется.", login=["Пользователь с такой почтой уже существует."])
+        raise ApiFailure(
+            "Почта уже используется.", login=["Пользователь с такой почтой уже существует."]
+        )
     return login
 
 
@@ -170,7 +196,13 @@ def collection(request):
         display_name = clean_name(data.get("display_name"))
         login = clean_login(data.get("login"))
         active = clean_active(data.get("is_active", True))
-        user = model(display_name=display_name, login=login, is_active=active, is_staff=False, is_superuser=False)
+        user = model(
+            display_name=display_name,
+            login=login,
+            is_active=active,
+            is_staff=False,
+            is_superuser=False,
+        )
         password_value = clean_password(data.get("password"), user)
         user.set_password(password_value)
         with transaction.atomic():
@@ -178,7 +210,11 @@ def collection(request):
         return JsonResponse(payload(user, request.user), status=201)
 
     all_users = model.objects.all()
-    summary = {"total": all_users.count(), "active": all_users.filter(is_active=True).count(), "inactive": all_users.filter(is_active=False).count()}
+    summary = {
+        "total": all_users.count(),
+        "active": all_users.filter(is_active=True).count(),
+        "inactive": all_users.filter(is_active=False).count(),
+    }
     queryset = all_users
     query = request.GET.get("q", "").strip()[:250]
     if query:
@@ -194,12 +230,25 @@ def collection(request):
     page_size = min(positive_int(request.GET.get("page_size", 6), 6), 100)
     paginator = Paginator(queryset.order_by("-is_superuser", "login", "pk"), page_size)
     page = paginator.get_page(positive_int(request.GET.get("page", 1), 1))
-    return JsonResponse({"results": [payload(user, request.user) for user in page], "count": paginator.count, "page": page.number, "page_size": page_size, "pages": paginator.num_pages, "summary": summary})
+    return JsonResponse(
+        {
+            "results": [payload(user, request.user) for user in page],
+            "count": paginator.count,
+            "page": page.number,
+            "page_size": page_size,
+            "pages": paginator.num_pages,
+            "summary": summary,
+        }
+    )
 
 
 @admin_endpoint("PATCH", "DELETE")
 def detail(request, user_id):
-    data = read_body(request, {"display_name", "login", "is_active"}) if request.method == "PATCH" else None
+    data = (
+        read_body(request, {"display_name", "login", "is_active"})
+        if request.method == "PATCH"
+        else None
+    )
     with transaction.atomic():
         user = target(user_id)
         if request.method == "DELETE":
