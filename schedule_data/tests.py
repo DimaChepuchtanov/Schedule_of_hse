@@ -34,6 +34,20 @@ class ImportValidationTests(SimpleTestCase):
             self.assertEqual(errors, [])
             self.assertTrue(payload[key])
 
+    def test_example_comments_use_one_hint_format(self):
+        book = build_example_workbook("directions")
+        groups = book["Группы"]
+        plan = book["Учебный план"]
+        self.assertEqual(groups["B1"].comment.text, "Обязательное поле. Целое число от 1 до 5.")
+        self.assertEqual(
+            plan["E1"].comment.text,
+            "Обязательное поле. Пример значения: «Каждая группа» или код группы.",
+        )
+        self.assertEqual(
+            plan["G1"].comment.text,
+            "Необязательное поле. Пример значения: «Компьютерный класс» или «Онлайн».",
+        )
+
     def test_course_five_is_accepted_and_six_is_rejected(self):
         accepted, errors = parse_workbook(
             _directions_book(
@@ -106,10 +120,87 @@ class ImportValidationTests(SimpleTestCase):
         self.assertIn("Код преподавателя", errors[0])
         self.assertNotIn("Ограничения", errors[0].split(":", maxsplit=1)[-1])
 
+    def test_manual_errors_use_the_same_sheet_prefix_as_excel(self):
+        _payload, errors = parse_manual(
+            {
+                "workload": [
+                    {
+                        "Предмет": "Программирование",
+                        "Код преподавателя": "teacher-001",
+                        "Преподаватель": "Иванов Иван Иванович",
+                        "Лекции, часы": "3м",
+                        "Семинары, часы": "2",
+                        "Ограничения": "",
+                        "Направление": "МБИ",
+                        "Курс": "1",
+                    }
+                ],
+            },
+            "workload",
+        )
+        self.assertEqual(
+            errors,
+            ["Лист «Нагрузка», строка 1: «Лекции, часы» должно быть целым числом от 0, без букв."],
+        )
+
+    def test_teacher_name_must_not_contain_digits(self):
+        book = Workbook()
+        sheet = book.active
+        sheet.title = "Нагрузка"
+        sheet.append(
+            (
+                "Предмет",
+                "Код преподавателя",
+                "Преподаватель",
+                "Лекции, часы",
+                "Семинары, часы",
+                "Ограничения",
+                "Направление",
+                "Курс",
+            )
+        )
+        sheet.append(("Программирование", "teacher-001", "015", 2, 2, "", "МБИ", 1))
+
+        _payload, errors = parse_workbook(book, "workload")
+
+        self.assertEqual(
+            errors,
+            ["Лист «Нагрузка», строка 2: значение поля «Преподаватель» не должно содержать цифры."],
+        )
+
+    def test_excel_errors_quote_every_field_name(self):
+        book = Workbook()
+        sheet = book.active
+        sheet.title = "Нагрузка"
+        sheet.append(
+            (
+                "Код преподавателя",
+                "Преподаватель",
+                "Лекции, часы",
+                "Семинары, часы",
+                "Ограничения",
+                "Направление",
+                "Курс",
+            )
+        )
+        sheet.append(("", "Иванов Иван Иванович", 2, 2, "Понедельник", "МБИ", 1))
+
+        _payload, errors = parse_workbook(book, "workload")
+
+        self.assertEqual(
+            errors,
+            [
+                "Лист «Нагрузка», строка 2: заполните обязательные поля: «Код преподавателя».",
+                "Лист «Нагрузка»: заголовки должны точно совпадать: «Предмет»; "
+                "«Код преподавателя»; «Преподаватель»; «Лекции, часы»; "
+                "«Семинары, часы»; «Ограничения»; «Направление»; «Курс».",
+            ],
+        )
+
     def test_header_error_separates_columns_with_semicolon(self):
         book = Workbook()
         sheet = book.active
         sheet.title = "Нагрузка"
         sheet.append(("Предмет",))
         _payload, errors = parse_workbook(book, "workload")
-        self.assertIn("Лекции, часы; Семинары, часы", errors[0])
+        self.assertIn("«Лекции, часы»; «Семинары, часы»", errors[0])

@@ -57,21 +57,21 @@ NUMERIC_MINIMUM = {
     "Семинары, часы": 0,
 }
 HEADER_HINTS = {
-    "Направление": "Код направления, например МБИ.",
+    "Направление": "Пример значения: «МБИ».",
     "Курс": "Целое число от 1 до 5.",
-    "Код группы": "Код учебной группы, например МБИ-01.",
+    "Код группы": "Пример значения: «МБИ-01».",
     "Код подгруппы": "Код подгруппы, если занятие идёт по подгруппам.",
     "Численность": "Целое число больше нуля, без букв.",
     "Предмет": "Название дисциплины.",
-    "Вид занятия": "Например: Лекция или Семинар.",
-    "Для кого": "Кто посещает занятие: «Каждая группа» или коды групп.",
+    "Вид занятия": "Пример значения: «Лекция» или «Семинар».",
+    "Для кого": "Пример значения: «Каждая группа» или код группы.",
     "Часы": "Целое число академических часов, без букв. Ноль допустим.",
-    "Требования к аудитории": "Например: Компьютерный класс или Онлайн.",
-    "Код преподавателя": "Устойчивый код преподавателя, например teacher-001.",
-    "Преподаватель": "Фамилия, имя и отчество.",
+    "Требования к аудитории": "Пример значения: «Компьютерный класс» или «Онлайн».",
+    "Код преподавателя": "Пример значения: «teacher-001».",
+    "Преподаватель": "Фамилия, имя и отчество, без цифр.",
     "Лекции, часы": "Целое число часов лекций, без букв. Ноль допустим.",
     "Семинары, часы": "Целое число часов семинаров, без букв. Ноль допустим.",
-    "Ограничения": "Ограничение преподавателя, например день недели.",
+    "Ограничения": "Пример значения: «Понедельник».",
 }
 EXAMPLE_VALUES = {
     "Направление": "МБИ",
@@ -132,7 +132,7 @@ def _value(value: Any) -> str:
 
 
 def _columns(names: tuple[str, ...] | list[str]) -> str:
-    return "; ".join(names)
+    return "; ".join(f"«{name}»" for name in names)
 
 
 def _align_row(raw_row: tuple[Any, ...], width: int) -> tuple[str, ...] | None:
@@ -146,13 +146,16 @@ def _align_row(raw_row: tuple[Any, ...], width: int) -> tuple[str, ...] | None:
 
 def _row_errors(item: dict[str, str], title: str, where: str) -> list[str]:
     errors: list[str] = []
-    missing = [field for field in REQUIRED_FIELDS[title] if not item[field]]
+    missing = [field for field in REQUIRED_FIELDS[title] if field in item and not item[field]]
     if missing:
         errors.append(f"{where}: заполните обязательные поля: {_columns(missing)}.")
         return errors
-    course = item["Курс"]
-    if not course.isdigit() or not COURSE_MIN <= int(course) <= COURSE_MAX:
-        errors.append(f"{where}: курс должен быть целым числом от {COURSE_MIN} до {COURSE_MAX}.")
+    if "Курс" in item:
+        course = item["Курс"]
+        if not course.isdigit() or not COURSE_MIN <= int(course) <= COURSE_MAX:
+            errors.append(
+                f"{where}: курс должен быть целым числом от {COURSE_MIN} до {COURSE_MAX}."
+            )
     for field, minimum in NUMERIC_MINIMUM.items():
         if field not in item or not item[field]:
             continue
@@ -161,6 +164,9 @@ def _row_errors(item: dict[str, str], title: str, where: str) -> list[str]:
             continue
         bound = "больше нуля" if minimum else "от 0"
         errors.append(f"{where}: «{field}» должно быть целым числом {bound}, без букв.")
+    teacher = item.get("Преподаватель", "")
+    if teacher and any(character.isdigit() for character in teacher):
+        errors.append(f"{where}: значение поля «Преподаватель» не должно содержать цифры.")
     return errors
 
 
@@ -169,28 +175,52 @@ def _read_sheet(sheet: Any, title: str) -> tuple[list[dict[str, str]], list[str]
     expected = SHEET_HEADERS[title]
     if not rows:
         return [], [f"Лист «{title}» пуст."]
-    if tuple(_value(value) for value in rows[0]) != expected:
-        return [], [f"Лист «{title}»: заголовки должны точно совпадать: {_columns(expected)}."]
+
+    actual = tuple(_value(value) for value in rows[0])
+    headers_match = actual == expected
+    header_error = f"Лист «{title}»: заголовки должны точно совпадать: {_columns(expected)}."
+    if not headers_match and len(rows) == 1:
+        return [], [header_error]
     if len(rows) == 1:
         return [], [f"Лист «{title}»: добавьте хотя бы одну запись после заголовков."]
+
+    index_by_name: dict[str, int] = {}
+    for index, name in enumerate(actual):
+        index_by_name.setdefault(name, index)
 
     result: list[dict[str, str]] = []
     errors: list[str] = []
     for row_number, raw_row in enumerate(rows[1:], 2):
         where = f"Лист «{title}», строка {row_number}"
-        values = _align_row(raw_row, len(expected))
-        if values is None:
-            errors.append(f"{where}: в строке больше столбцов, чем в заголовке.")
-            continue
-        if not any(values):
-            errors.append(f"{where}: пустые строки запрещены.")
-            continue
-        item = dict(zip(expected, values, strict=True))
+        if headers_match:
+            values = _align_row(raw_row, len(expected))
+            if values is None:
+                errors.append(f"{where}: в строке больше столбцов, чем в заголовке.")
+                continue
+            if not any(values):
+                errors.append(f"{where}: пустые строки запрещены.")
+                continue
+            item = dict(zip(expected, values, strict=True))
+        else:
+            raw_values = tuple(_value(value) for value in raw_row)
+            if not any(raw_values):
+                errors.append(f"{where}: пустые строки запрещены.")
+                continue
+            item = {}
+            for field in expected:
+                index = index_by_name.get(field)
+                if index is None:
+                    continue
+                item[field] = raw_values[index] if index < len(raw_values) else ""
         row_errors = _row_errors(item, title, where)
         if row_errors:
             errors.extend(row_errors)
             continue
-        result.append(item)
+        if headers_match:
+            result.append(item)
+    if not headers_match:
+        errors.append(header_error)
+        return [], errors
     return result, errors
 
 
@@ -230,20 +260,20 @@ def parse_manual(
         if key not in sheet_by_key:
             errors.append("Неизвестный тип данных.")
             continue
+        title = sheet_by_key[key]
         if not isinstance(rows, list):
-            errors.append(f"{sheet_by_key[key]}: таблица имеет неверный формат.")
+            errors.append(f"Лист «{title}»: таблица имеет неверный формат.")
             continue
-        fields = SHEET_HEADERS[sheet_by_key[key]]
+        fields = SHEET_HEADERS[title]
         for row_number, row in enumerate(rows, 1):
             if not isinstance(row, dict):
-                errors.append(f"{sheet_by_key[key]}, строка {row_number}: неверный формат.")
+                errors.append(f"Лист «{title}», строка {row_number}: неверный формат.")
                 continue
             values = tuple(_value(row.get(field)) for field in fields)
             if not any(values):
                 continue
-            title = sheet_by_key[key]
             item = dict(zip(fields, values, strict=True))
-            row_errors = _row_errors(item, title, f"{title}, строка {row_number}")
+            row_errors = _row_errors(item, title, f"Лист «{title}», строка {row_number}")
             if row_errors:
                 errors.extend(row_errors)
                 continue
