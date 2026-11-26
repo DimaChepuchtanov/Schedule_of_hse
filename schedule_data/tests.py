@@ -128,9 +128,35 @@ class ImportValidationTests(SimpleTestCase):
 
         self.assertEqual(
             errors,
+            ["Лист «Нагрузка», строка 2: значение поля «Преподаватель» не должно содержать цифры."],
+        )
+
+    def test_excel_errors_quote_every_field_name(self):
+        book = Workbook()
+        sheet = book.active
+        sheet.title = "Нагрузка"
+        sheet.append(
+            (
+                "Код преподавателя",
+                "Преподаватель",
+                "Лекции, часы",
+                "Семинары, часы",
+                "Ограничения",
+                "Направление",
+                "Курс",
+            )
+        )
+        sheet.append(("", "Иванов Иван Иванович", 2, 2, "Понедельник", "МБИ", 1))
+
+        _payload, errors = parse_workbook(book, "workload")
+
+        self.assertEqual(
+            errors,
             [
-                "Лист «Нагрузка», строка 2: "
-                "значение поля «Преподаватель» не должно содержать цифры."
+                "Лист «Нагрузка», строка 2: заполните обязательные поля: «Код преподавателя».",
+                "Лист «Нагрузка»: заголовки должны точно совпадать: «Предмет»; "
+                "«Код преподавателя»; «Преподаватель»; «Лекции, часы»; "
+                "«Семинары, часы»; «Ограничения»; «Направление»; «Курс».",
             ],
         )
 
@@ -140,4 +166,4 @@ class ImportValidationTests(SimpleTestCase):
         sheet.title = "Нагрузка"
         sheet.append(("Предмет",))
         _payload, errors = parse_workbook(book, "workload")
-        self.assertIn("Лекции, часы; Семинары, часы", errors[0])
+        self.assertIn("«Лекции, часы»; «Семинары, часы»", errors[0])

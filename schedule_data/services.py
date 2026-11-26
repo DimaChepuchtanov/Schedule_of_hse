@@ -132,7 +132,7 @@ def _value(value: Any) -> str:
 
 
 def _columns(names: tuple[str, ...] | list[str]) -> str:
-    return "; ".join(names)
+    return "; ".join(f"«{name}»" for name in names)
 
 
 def _align_row(raw_row: tuple[Any, ...], width: int) -> tuple[str, ...] | None:
@@ -146,13 +146,16 @@ def _align_row(raw_row: tuple[Any, ...], width: int) -> tuple[str, ...] | None:
 
 def _row_errors(item: dict[str, str], title: str, where: str) -> list[str]:
     errors: list[str] = []
-    missing = [field for field in REQUIRED_FIELDS[title] if not item[field]]
+    missing = [field for field in REQUIRED_FIELDS[title] if field in item and not item[field]]
     if missing:
         errors.append(f"{where}: заполните обязательные поля: {_columns(missing)}.")
         return errors
-    course = item["Курс"]
-    if not course.isdigit() or not COURSE_MIN <= int(course) <= COURSE_MAX:
-        errors.append(f"{where}: курс должен быть целым числом от {COURSE_MIN} до {COURSE_MAX}.")
+    if "Курс" in item:
+        course = item["Курс"]
+        if not course.isdigit() or not COURSE_MIN <= int(course) <= COURSE_MAX:
+            errors.append(
+                f"{where}: курс должен быть целым числом от {COURSE_MIN} до {COURSE_MAX}."
+            )
     for field, minimum in NUMERIC_MINIMUM.items():
         if field not in item or not item[field]:
             continue
@@ -172,28 +175,52 @@ def _read_sheet(sheet: Any, title: str) -> tuple[list[dict[str, str]], list[str]
     expected = SHEET_HEADERS[title]
     if not rows:
         return [], [f"Лист «{title}» пуст."]
-    if tuple(_value(value) for value in rows[0]) != expected:
-        return [], [f"Лист «{title}»: заголовки должны точно совпадать: {_columns(expected)}."]
+
+    actual = tuple(_value(value) for value in rows[0])
+    headers_match = actual == expected
+    header_error = f"Лист «{title}»: заголовки должны точно совпадать: {_columns(expected)}."
+    if not headers_match and len(rows) == 1:
+        return [], [header_error]
     if len(rows) == 1:
         return [], [f"Лист «{title}»: добавьте хотя бы одну запись после заголовков."]
+
+    index_by_name: dict[str, int] = {}
+    for index, name in enumerate(actual):
+        index_by_name.setdefault(name, index)
 
     result: list[dict[str, str]] = []
     errors: list[str] = []
     for row_number, raw_row in enumerate(rows[1:], 2):
         where = f"Лист «{title}», строка {row_number}"
-        values = _align_row(raw_row, len(expected))
-        if values is None:
-            errors.append(f"{where}: в строке больше столбцов, чем в заголовке.")
-            continue
-        if not any(values):
-            errors.append(f"{where}: пустые строки запрещены.")
-            continue
-        item = dict(zip(expected, values, strict=True))
+        if headers_match:
+            values = _align_row(raw_row, len(expected))
+            if values is None:
+                errors.append(f"{where}: в строке больше столбцов, чем в заголовке.")
+                continue
+            if not any(values):
+                errors.append(f"{where}: пустые строки запрещены.")
+                continue
+            item = dict(zip(expected, values, strict=True))
+        else:
+            raw_values = tuple(_value(value) for value in raw_row)
+            if not any(raw_values):
+                errors.append(f"{where}: пустые строки запрещены.")
+                continue
+            item = {}
+            for field in expected:
+                index = index_by_name.get(field)
+                if index is None:
+                    continue
+                item[field] = raw_values[index] if index < len(raw_values) else ""
         row_errors = _row_errors(item, title, where)
         if row_errors:
             errors.extend(row_errors)
             continue
-        result.append(item)
+        if headers_match:
+            result.append(item)
+    if not headers_match:
+        errors.append(header_error)
+        return [], errors
     return result, errors
 
 
