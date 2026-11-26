@@ -23,15 +23,27 @@ const REQUIRED = {
   workload: ["Предмет", "Код преподавателя", "Преподаватель", "Лекции, часы", "Семинары, часы", "Направление", "Курс"],
 };
 const HINTS = {
+  "Направление": "Код направления, например МБИ.",
   "Курс": "Целое число от 1 до 5.",
+  "Код группы": "Код учебной группы, например МБИ-01.",
+  "Код подгруппы": "Код подгруппы, если занятие идёт по подгруппам.",
   "Численность": "Целое число больше нуля, без букв.",
-  "Часы": "Целое число от 0, без букв.",
-  "Лекции, часы": "Целое число от 0, без букв.",
-  "Семинары, часы": "Целое число от 0, без букв.",
-  "Код подгруппы": "Необязательное поле.",
-  "Требования к аудитории": "Необязательное поле.",
-  "Ограничения": "Необязательное поле.",
+  "Предмет": "Название дисциплины.",
+  "Вид занятия": "Например: Лекция или Семинар.",
+  "Для кого": "Кто посещает занятие: «Каждая группа» или коды групп.",
+  "Часы": "Целое число академических часов, без букв. Ноль допустим.",
+  "Требования к аудитории": "Например: Компьютерный класс или Онлайн.",
+  "Код преподавателя": "Устойчивый код преподавателя, например teacher-001.",
+  "Преподаватель": "Фамилия, имя и отчество, без цифр.",
+  "Лекции, часы": "Целое число часов лекций, без букв. Ноль допустим.",
+  "Семинары, часы": "Целое число часов семинаров, без букв. Ноль допустим.",
+  "Ограничения": "Ограничение преподавателя, например день недели.",
 };
+
+function fieldHint(column, required) {
+  const status = required.includes(column) ? "Обязательное поле." : "Необязательное поле.";
+  return `${status} ${HINTS[column]}`;
+}
 
 const emptyPreview = { groups: [], study_plan: [], workload: [] };
 const initialRows = Object.fromEntries(
@@ -67,11 +79,15 @@ function EditableTable({ columns, required, rows, onChange }) {
       <table className="manual-table">
         <thead>
           <tr>
-            {columns.map((column) => (
-              <th key={column} className={required.includes(column) ? "is-required" : "is-optional"} title={HINTS[column] || (required.includes(column) ? "Обязательное поле" : "Необязательное поле")}>
-                {column}{required.includes(column) ? " *" : ""}
-              </th>
-            ))}
+            {columns.map((column) => {
+              const hint = fieldHint(column, required);
+              return (
+                <th key={column} className={required.includes(column) ? "is-required" : "is-optional"} title={hint}>
+                  <span className="manual-table__name">{column}{required.includes(column) ? " *" : ""}</span>
+                  <span className="manual-table__hint">{hint}</span>
+                </th>
+              );
+            })}
             <th />
           </tr>
         </thead>
@@ -89,7 +105,7 @@ function EditableTable({ columns, required, rows, onChange }) {
         </tbody>
       </table>
       <button type="button" className="manual-table__add" onClick={() => onChange([...rows, Object.fromEntries(columns.map((column) => [column, ""]))])}>+ Добавить строку</button>
-      <p className="manual-table__note">* — обязательное поле. Курс — целое число от 1 до 5. Численность и часы — целые числа без букв.</p>
+      <p className="manual-table__note">* — обязательное поле. Текст под названием столбца совпадает с примечанием в файле-примере.</p>
     </div>
   );
 }
