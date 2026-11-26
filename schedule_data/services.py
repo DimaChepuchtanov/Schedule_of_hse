@@ -260,20 +260,20 @@ def parse_manual(
         if key not in sheet_by_key:
             errors.append("Неизвестный тип данных.")
             continue
+        title = sheet_by_key[key]
         if not isinstance(rows, list):
-            errors.append(f"{sheet_by_key[key]}: таблица имеет неверный формат.")
+            errors.append(f"Лист «{title}»: таблица имеет неверный формат.")
             continue
-        fields = SHEET_HEADERS[sheet_by_key[key]]
+        fields = SHEET_HEADERS[title]
         for row_number, row in enumerate(rows, 1):
             if not isinstance(row, dict):
-                errors.append(f"{sheet_by_key[key]}, строка {row_number}: неверный формат.")
+                errors.append(f"Лист «{title}», строка {row_number}: неверный формат.")
                 continue
             values = tuple(_value(row.get(field)) for field in fields)
             if not any(values):
                 continue
-            title = sheet_by_key[key]
             item = dict(zip(fields, values, strict=True))
-            row_errors = _row_errors(item, title, f"{title}, строка {row_number}")
+            row_errors = _row_errors(item, title, f"Лист «{title}», строка {row_number}")
             if row_errors:
                 errors.extend(row_errors)
                 continue

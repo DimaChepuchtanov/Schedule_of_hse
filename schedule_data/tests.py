@@ -106,6 +106,29 @@ class ImportValidationTests(SimpleTestCase):
         self.assertIn("Код преподавателя", errors[0])
         self.assertNotIn("Ограничения", errors[0].split(":", maxsplit=1)[-1])
 
+    def test_manual_errors_use_the_same_sheet_prefix_as_excel(self):
+        _payload, errors = parse_manual(
+            {
+                "workload": [
+                    {
+                        "Предмет": "Программирование",
+                        "Код преподавателя": "teacher-001",
+                        "Преподаватель": "Иванов Иван Иванович",
+                        "Лекции, часы": "3м",
+                        "Семинары, часы": "2",
+                        "Ограничения": "",
+                        "Направление": "МБИ",
+                        "Курс": "1",
+                    }
+                ],
+            },
+            "workload",
+        )
+        self.assertEqual(
+            errors,
+            ["Лист «Нагрузка», строка 1: «Лекции, часы» должно быть целым числом от 0, без букв."],
+        )
+
     def test_teacher_name_must_not_contain_digits(self):
         book = Workbook()
         sheet = book.active
