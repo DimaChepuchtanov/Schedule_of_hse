@@ -105,7 +105,6 @@ function EditableTable({ columns, required, rows, onChange }) {
         </tbody>
       </table>
       <button type="button" className="manual-table__add" onClick={() => onChange([...rows, Object.fromEntries(columns.map((column) => [column, ""]))])}>+ Добавить строку</button>
-      <p className="manual-table__note">* — обязательное поле. Текст под названием столбца совпадает с примечанием в файле-примере.</p>
     </div>
   );
 }
