@@ -106,6 +106,34 @@ class ImportValidationTests(SimpleTestCase):
         self.assertIn("Код преподавателя", errors[0])
         self.assertNotIn("Ограничения", errors[0].split(":", maxsplit=1)[-1])
 
+    def test_teacher_name_must_not_contain_digits(self):
+        book = Workbook()
+        sheet = book.active
+        sheet.title = "Нагрузка"
+        sheet.append(
+            (
+                "Предмет",
+                "Код преподавателя",
+                "Преподаватель",
+                "Лекции, часы",
+                "Семинары, часы",
+                "Ограничения",
+                "Направление",
+                "Курс",
+            )
+        )
+        sheet.append(("Программирование", "teacher-001", "015", 2, 2, "", "МБИ", 1))
+
+        _payload, errors = parse_workbook(book, "workload")
+
+        self.assertEqual(
+            errors,
+            [
+                "Лист «Нагрузка», строка 2: "
+                "значение поля «Преподаватель» не должно содержать цифры."
+            ],
+        )
+
     def test_header_error_separates_columns_with_semicolon(self):
         book = Workbook()
         sheet = book.active
