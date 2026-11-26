@@ -34,6 +34,20 @@ class ImportValidationTests(SimpleTestCase):
             self.assertEqual(errors, [])
             self.assertTrue(payload[key])
 
+    def test_example_comments_use_one_hint_format(self):
+        book = build_example_workbook("directions")
+        groups = book["Группы"]
+        plan = book["Учебный план"]
+        self.assertEqual(groups["B1"].comment.text, "Обязательное поле. Целое число от 1 до 5.")
+        self.assertEqual(
+            plan["E1"].comment.text,
+            "Обязательное поле. Пример значения: «Каждая группа» или код группы.",
+        )
+        self.assertEqual(
+            plan["G1"].comment.text,
+            "Необязательное поле. Пример значения: «Компьютерный класс» или «Онлайн».",
+        )
+
     def test_course_five_is_accepted_and_six_is_rejected(self):
         accepted, errors = parse_workbook(
             _directions_book(
