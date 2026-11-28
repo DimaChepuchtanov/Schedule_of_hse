@@ -28,7 +28,7 @@ function Overview() {
       <TimetableArt compact />
     </section>
     <section className="portal-recent">
-      <h2>Последние расписания</h2>
+      <h2>История расписания</h2>
       <div><CalendarDays size={46} strokeWidth={1.4} /><p>Здесь появятся сохранённые расписания</p></div>
     </section>
   </>;

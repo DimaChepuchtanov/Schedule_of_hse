@@ -39,7 +39,7 @@ const empty = {
 export default function UsersAdminPage({
   api = usersApi,
   authHref = "/auth/",
-  scheduleHref = "/",
+  scheduleHref = "/menu/",
   onLoggedOut,
 }) {
   const [context, setContext] = useState(null);
